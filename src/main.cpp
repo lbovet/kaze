@@ -13,8 +13,10 @@ void setup()
   Serial.println("go");
   delay(1000);
   display.begin();
-  display.showSymbol(ALARM, LEFT, FADE);
-  display.showDigit(0, 2, SLIDE_UP);
+  display.symbol(ALARM, LEFT, FADE);
+  display.digit(0, 2, FADE);
+  display.digit(0, 3, FADE);
+  display.schedule();
   chrono.restart();
 }
 
@@ -31,9 +33,14 @@ void loop()
   {
     chrono.restart();
     n++;
-    if (n > 9)
+    if (n > 59)
       n = 0;
-    display.showDigit(n, 3, SLIDE_UP);
+    display.digit(n % 10, 3, SLIDE_UP);
+    if (n % 10 == 0)
+    {
+      display.digit(n / 10, 2, SLIDE_DOWN);
+    }
+    display.schedule();
     Serial.println(freeMemory());
   }
 

@@ -46,7 +46,6 @@ enum Position
 
 enum Transition
 {
-    NONE,
     FADE,
     SLIDE_DOWN,
     SLIDE_UP
@@ -61,7 +60,7 @@ public:
         matrix2.begin();
     }
 
-    void showSymbol(Symbol symbol, Position position, Transition transition)
+    void symbol(Symbol symbol, Position position, Transition transition)
     {
         byte buffer[8];
         for (byte j = 0; j < 8; j++)
@@ -69,17 +68,27 @@ public:
             buffer[j] = pgm_read_word_near(symbols + symbol * 8 + j);
         }
 
-        Task *task = new ParallelTask(
-            new FadeOut(getMatrix(position)->displayBuffer),
-            new FadeIn(getMatrix(position)->displayBuffer, buffer));
+        Task *task;
 
-        if (scheduler.schedule(task, 80))
+        switch (transition)
         {
-            getMatrix(position)->writeDisplay();
+        case FADE:
+            task = new ParallelTask(
+                new FadeOut(getMatrix(position)->displayBuffer),
+                new FadeIn(getMatrix(position)->displayBuffer, buffer));
+            break;
+        case SLIDE_DOWN:
+        case SLIDE_UP:
+            task = new ParallelTask(
+                new SlideOut(getMatrix(position)->displayBuffer, transition == SLIDE_DOWN),
+                new SlideIn(getMatrix(position)->displayBuffer, buffer, transition == SLIDE_DOWN));
+            break;
         }
+
+        addTask(task);
     }
 
-    void showDigit(uint8_t number, uint8_t position, Transition transition)
+    void digit(uint8_t number, uint8_t position, Transition transition)
     {
         byte buffer[4];
         for (byte j = 0; j < 4; j++)
@@ -87,13 +96,32 @@ public:
             buffer[j] = pgm_read_word_near(symbols + number * 4 + j);
         }
 
-        Task *task = new ParallelTask(
-            new SlideOut(getMatrix(position < 2 ? LEFT : RIGHT)->displayBuffer + (position % 2) * 4, false, 4),
-            new SlideIn(getMatrix(position < 2 ? LEFT : RIGHT)->displayBuffer + (position % 2) * 4, buffer, false, 4));
+        byte *targetBuffer = getMatrix(position < 2 ? LEFT : RIGHT)->displayBuffer + (position % 2) * 4;
 
-        if (scheduler.schedule(task, 60))
+        Task *task;
+
+        switch (transition)
         {
-            getMatrix(position < 2 ? LEFT : RIGHT)->writeDisplay();
+        case FADE:
+            task = new ParallelTask(
+                new FadeOut(targetBuffer, 4),
+                new FadeIn(targetBuffer, buffer, 4));
+            break;
+        case SLIDE_DOWN:
+        case SLIDE_UP:
+            task = new ParallelTask(
+                new SlideOut(targetBuffer, transition == SLIDE_DOWN, 4),
+                new SlideIn(targetBuffer, buffer, transition == SLIDE_DOWN, 4));
+        }
+        addTask(task);
+    }
+
+    void schedule(int interval = 60)
+    {
+        if (preparedTask)
+        {
+            scheduler.schedule(preparedTask, interval);
+            preparedTask = 0;
         }
     }
 
@@ -118,6 +146,17 @@ public:
     }
 
 private:
+    void addTask(Task *task)
+    {
+        if (preparedTask)
+        {
+            preparedTask = new ParallelTask(preparedTask, task);
+        }
+        else
+        {
+            preparedTask = task;
+        }
+    }
     Matrix *getMatrix(Position position)
     {
         if (!turned)
@@ -129,6 +168,7 @@ private:
             return position == LEFT ? &matrix2 : &matrix1;
         }
     }
+    Task *preparedTask = 0;
     boolean initialized = false;
     boolean turned = false;
     Matrix matrix1 = Matrix(0x70);

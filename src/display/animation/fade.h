@@ -11,7 +11,7 @@ public:
     {
         if (this->iteration-- > 0)
         {
-            for (byte i = 0; i < 8; i++)
+            for (byte i = 0; i < size; i++)
             {
                 byte p = 1 << random(8);
                 for (byte j = 0; j < 8 && (this->mask[i] == (this->mask[i] | p)); j++)
@@ -40,7 +40,7 @@ public:
     {
         if (this->iteration-- > 0)
         {
-            for (byte i = 0; i < 8; i++)
+            for (byte i = 0; i < size; i++)
             {
                 byte p = 1 << random(8);
                 for (byte j = 0; j < 8 && (this->mask[i] == (this->mask[i] | p)); j++)
