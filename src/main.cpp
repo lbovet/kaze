@@ -11,9 +11,9 @@ void setup()
 {
   Serial.begin(9600);
   Serial.println("go");
-  delay(1000);
   display.begin();
-  display.symbol(ALARM, LEFT, FADE);
+  delay(1000);
+  display.symbol(ALARM, LEFT, SLIDE_UP);
   display.digit(0, 2, FADE);
   display.digit(0, 3, FADE);
   display.schedule();
@@ -44,7 +44,7 @@ void loop()
     Serial.println(freeMemory());
   }
 
-
+/*
   while(abs(sensor) < 50) {
     if(analogRead(A0) < 512)
       sensor --;
@@ -57,5 +57,5 @@ void loop()
   if(orientation != previousOrientation) {
     previousOrientation = orientation;
     display.setTurned(orientation);
-  }
+  }*/
 }

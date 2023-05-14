@@ -6,18 +6,20 @@
 class SlideOut : public OutAnimation
 {
 public:
-    SlideOut(byte buffer[], boolean direction = true, int size = 8) : OutAnimation(buffer, size)
+    SlideOut(byte **buffer, boolean direction = true, byte size = 8, byte offset = 0) : OutAnimation(buffer, size, offset)
     {
         this->direction = direction;
     }
+
     uint8_t update() override
     {
+        init();
         if (this->iteration-- > 0)
         {
-            for (byte i = 0; i < size; i++)
+            for (byte i = offset; i < offset + size; i++)
             {
                 this->animBuffer[i] = this->direction ? this->animBuffer[i] >> 1 : this->animBuffer[i] << 1;
-                this->targetBuffer[i] = this->animBuffer[i];
+                (*this->targetBuffer)[i] = this->animBuffer[i];
             }
         }
         return iteration;
@@ -31,7 +33,7 @@ private:
 class SlideIn : public InAnimation
 {
 public:
-    SlideIn(byte buffer[], byte *source, boolean direction = true, int size = 8) : InAnimation(buffer, source, size)
+    SlideIn(byte** buffer, byte *source, boolean direction = true, byte size = 8, byte offset = 0) : InAnimation(buffer, source, size, offset)
     {
         this->direction = direction;
     }
@@ -39,10 +41,10 @@ public:
     {
         if (this->iteration-- > 0)
         {
-            for (byte i = 0; i < size; i++)
+            for (byte i = offset; i < offset + size; i++)
             {
-                this->animBuffer[i] = this->direction ? this->source[i] << iteration : this->source[i] >> iteration;
-                this->targetBuffer[i] = this->targetBuffer[i] | this->animBuffer[i];
+                this->animBuffer[i] = this->direction ? this->source[i - offset] << iteration : this->source[i - offset] >> iteration;
+                (*this->targetBuffer)[i] = (*this->targetBuffer)[i] | this->animBuffer[i];
             }
         }
         return iteration;

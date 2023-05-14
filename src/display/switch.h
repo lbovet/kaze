@@ -3,22 +3,29 @@
 
 #include "task.h"
 
+class Switchable
+{
+public:
+    virtual void setSwitch(boolean value) = 0;
+};
+
 class SwitchTask : public Task
 {
 public:
-    SwitchTask(boolean* dest, boolean value)
+    SwitchTask(Switchable* switchable, boolean value)
     {
-        this->dest = dest;
+        this->switchable = switchable;
         this->value = value;
     }
+
     virtual uint8_t update() override
     {
-        *dest = value;
+        switchable->setSwitch(value);
         return 0;
     }
     virtual ~SwitchTask() {};
 private:
-    boolean* dest;
+    Switchable* switchable;
     boolean value;
 };
 

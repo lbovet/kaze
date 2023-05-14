@@ -8,30 +8,35 @@
 class Animation : public Task
 {
 public:
-    Animation(byte buffer[], int size = 8)
+    Animation(byte **buffer, byte size = 8, byte offset = 0)
     {
         this->size = size;
         this->targetBuffer = buffer;
+        this->offset = offset;
     }
+
     virtual ~Animation() {}
 
 protected:
     byte iteration = 8;
     byte size;
-    byte *targetBuffer;
+    byte offset;
+    byte **targetBuffer;
     byte animBuffer[8] = {0};
 };
 
 class InAnimation : public Animation
 {
 public:
-    InAnimation(byte buffer[], byte *source, int size = 8) : Animation(buffer, size)
+    InAnimation(byte **buffer, byte size = 8, byte offset = 0) : Animation(buffer, size, offset) {}
+    InAnimation(byte **buffer, byte *source, byte size = 8, byte offset = 0) : Animation(buffer, size, offset)
     {
         for (byte i = 0; i < size; i++)
         {
             this->source[i] = source[i];
         }
     }
+
     virtual ~InAnimation() {}
 
 protected:
@@ -41,11 +46,19 @@ protected:
 class OutAnimation : public Animation
 {
 public:
-    OutAnimation(byte buffer[], int size = 8) : Animation(buffer, size)
+    OutAnimation(byte** buffer, byte size = 8, byte offset = 0) : Animation(buffer, size, offset) {}
+
+    virtual void init()
     {
-        memcpy(this->animBuffer, buffer, size);
+        if(!initialized) {
+            Serial.println("starter");
+            memcpy(this->animBuffer + offset, *targetBuffer + offset, size);
+            initialized = true;
+        }
     }
     virtual ~OutAnimation() {}
+private:
+    boolean initialized = false;
 };
 
 #endif

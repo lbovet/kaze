@@ -62,7 +62,12 @@ public:
 
         for (byte i = 0; i < 8; i++)
         {
-            buffer[1 + 2 * i] = (displayBuffer[i] >> 1) | (displayBuffer[i] << 7);
+            byte line = displayBuffer[i];
+            if (rotation)
+            {
+                line = reverse(displayBuffer[7-i]);
+            }
+            buffer[1 + 2 * i] = (line >> 1) | (line << 7);
         }
 
         i2c_dev->write(buffer, 17);
@@ -76,16 +81,9 @@ public:
         }
     }
 
-    void rotate()
+    void setRotation(boolean rotation)
     {
-        SWAP(displayBuffer[0], displayBuffer[7]);
-        SWAP(displayBuffer[1], displayBuffer[6]);
-        SWAP(displayBuffer[2], displayBuffer[5]);
-        SWAP(displayBuffer[3], displayBuffer[4]);
-        for (byte i = 0; i < 8; i++)
-        {
-            displayBuffer[i] = reverse(displayBuffer[i]);
-        }
+        this->rotation = rotation;
     }
 
 private:
@@ -98,6 +96,7 @@ private:
     }
 
     Adafruit_I2CDevice *i2c_dev;
+    boolean rotation = false;
 };
 
 #endif

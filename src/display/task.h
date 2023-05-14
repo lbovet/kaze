@@ -48,15 +48,21 @@ public:
 
     virtual uint8_t update() override
     {
-        if(current == 0) {
+        if (current == 0)
+        {
             uint8_t it = one->update();
-            if(it == 0) {
+            if (it == 0)
+            {
                 current = 1;
                 return two->update();
-            } else {
+            }
+            else
+            {
                 return it;
             }
-        } else {
+        }
+        else
+        {
             return two->update();
         }
     }
@@ -75,46 +81,51 @@ private:
 class Scheduler
 {
 public:
-    boolean schedule(Task *task, boolean force, int interval)
+    boolean schedule(Task *task, uint8_t category, int interval)
     {
-        if (current)
+        for (uint8_t i = 0; i < QUEUE_SIZE; i++)
         {
-            if (next && force)
-                delete next;
-            if(!next || force) {
-                next = task;
-                nextinterval = interval;
+            uint8_t p = (current + i) % QUEUE_SIZE;
+            Serial.println(p);
+            if (tasks[p] == 0)
+            {
+                Serial.println("register");
+                tasks[p] = task;
+                intervals[p] = interval;
+                categories[p] = category;
+                if(p == current) {
+                    Serial.println("start");
+                    updateCurrent();
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                if(p != current && categories[p] == category) {
+                    delete tasks[p];
+                    tasks[p] = task;
+                    intervals[p] = interval;
+                    categories[p] = category;
+                    return false;
+                }
             }
-            return false;
         }
-        else
-        {
-            current = task;
-            currentinterval = interval;
-            updateCurrent();
-            return true;
-        }
+        // queue full
+        return false;
     }
 
     boolean update()
     {
-        if (current && chrono.hasPassed(currentinterval))
+        if (tasks[current] && chrono.hasPassed(intervals[current]))
         {
-            boolean finished = !updateCurrent();
-            if (finished)
+            Serial.println("updating");
+            while(tasks[current] && !updateCurrent())
             {
-                delete current;
-                if (next)
-                {
-                    current = next;
-                    currentinterval = nextinterval;
-                    next = 0;
-                    updateCurrent();
-                }
-                else
-                {
-                    current = 0;
-                }
+                Serial.println("finished");
+                delete tasks[current];
+                tasks[current] = 0;
+                categories[current] = 0;
+                current = (current + 1) % QUEUE_SIZE;
             }
             return true;
         }
@@ -128,14 +139,14 @@ private:
     boolean updateCurrent()
     {
         chrono.restart();
-        return current->update() > 0;
+        return tasks[current]->update() > 0;
     }
 
-    Task *current = 0;
-    int currentinterval;
-    Task *next = 0;
-    int nextinterval;
-
+    static const uint8_t QUEUE_SIZE = 8;
+    Task *tasks[QUEUE_SIZE] = {0};
+    int intervals[QUEUE_SIZE];
+    uint8_t categories[QUEUE_SIZE];
+    uint8_t current = 0;
     Chrono chrono;
 };
 
