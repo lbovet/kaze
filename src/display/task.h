@@ -20,7 +20,7 @@ public:
         this->two = two;
     }
 
-    virtual uint8_t update()
+    virtual uint8_t update() override
     {
         uint8_t i1 = one->update();
         uint8_t i2 = two->update();
@@ -37,17 +37,54 @@ private:
     Task *two;
 };
 
+class SerialTask : public Task
+{
+public:
+    SerialTask(Task *one, Task *two)
+    {
+        this->one = one;
+        this->two = two;
+    }
+
+    virtual uint8_t update() override
+    {
+        if(current == 0) {
+            uint8_t it = one->update();
+            if(it == 0) {
+                current = 1;
+                return two->update();
+            } else {
+                return it;
+            }
+        } else {
+            return two->update();
+        }
+    }
+    virtual ~SerialTask()
+    {
+        delete one;
+        delete two;
+    }
+
+private:
+    uint8_t current = 0;
+    Task *one;
+    Task *two;
+};
+
 class Scheduler
 {
 public:
-    boolean schedule(Task *task, int interval)
+    boolean schedule(Task *task, boolean force, int interval)
     {
         if (current)
         {
-            if (next)
+            if (next && force)
                 delete next;
-            next = task;
-            nextinterval = interval;
+            if(!next || force) {
+                next = task;
+                nextinterval = interval;
+            }
             return false;
         }
         else

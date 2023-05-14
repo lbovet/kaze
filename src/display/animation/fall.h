@@ -52,7 +52,7 @@ public:
                     this->animBuffer[i] = (this->animBuffer[i] & mask) | moving;
                 }
 
-                this->targetBuffer[i] = this->targetBuffer[i] | this->animBuffer[i] << (iteration - 16);
+                this->targetBuffer[i] = this->animBuffer[i] << (iteration - 16);
             }
         }
         return iteration;

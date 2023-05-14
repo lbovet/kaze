@@ -6,6 +6,7 @@
 #include "display/animation/fall.h"
 #include "display/animation/slide.h"
 #include "display/task.h"
+#include "display/switch.h"
 
 const byte symbols[] PROGMEM = {
     0x7c, 0x44, 0x7c, 0x00, 0x44, 0x7c, 0x04, 0x00, 0x5c, 0x54, 0x74, 0x00,
@@ -116,11 +117,11 @@ public:
         addTask(task);
     }
 
-    void schedule(int interval = 60)
+    void schedule(boolean force = false, int interval = 60)
     {
         if (preparedTask)
         {
-            scheduler.schedule(preparedTask, interval);
+            scheduler.schedule(preparedTask, force, interval);
             preparedTask = 0;
         }
     }
@@ -133,15 +134,35 @@ public:
 
     void setTurned(boolean turned)
     {
-        this->turned = turned;
+        if(turned != this->turned) {
+            Task *before = new ParallelTask(
+                new FallOut(getMatrix(LEFT)->displayBuffer),
+                new FallOut(getMatrix(RIGHT)->displayBuffer));
+            Task *after = new ParallelTask(
+                new FallIn(getMatrix(LEFT)->displayBuffer, getMatrix(RIGHT)->displayBuffer),
+                new FallIn(getMatrix(RIGHT)->displayBuffer, getMatrix(LEFT)->displayBuffer));
+            Task *task;
+            task = new SerialTask(new SerialTask(before, new SwitchTask(&this->turned, turned)), after);
+            addTask(task);
+            schedule(true);
+        }
     }
 
     void update()
     {
         if (scheduler.update())
         {
+            if(turned) {
+                matrix1.rotate();
+                matrix2.rotate();
+            }
             matrix1.writeDisplay();
             matrix2.writeDisplay();
+            if (turned)
+            {
+                matrix1.rotate();
+                matrix2.rotate();
+            }
         }
     }
 

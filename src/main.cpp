@@ -44,7 +44,7 @@ void loop()
     Serial.println(freeMemory());
   }
 
-  /*
+
   while(abs(sensor) < 50) {
     if(analogRead(A0) < 512)
       sensor --;
@@ -56,5 +56,6 @@ void loop()
 
   if(orientation != previousOrientation) {
     previousOrientation = orientation;
-  */
+    display.setTurned(orientation);
+  }
 }
