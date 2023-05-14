@@ -7,7 +7,6 @@
 #include "display/animation/slide.h"
 #include "display/task.h"
 #include "display/switch.h"
-#include "display/snapshot.h"
 
 const byte symbols[] PROGMEM = {
     0x7c, 0x44, 0x7c, 0x00, 0x44, 0x7c, 0x04, 0x00, 0x5c, 0x54, 0x74, 0x00,
@@ -50,7 +49,17 @@ enum Transition
 {
     FADE,
     SLIDE_DOWN,
-    SLIDE_UP
+    SLIDE_UP,
+    FALL_IN
+};
+
+enum Category
+{
+    NORMAL,
+    INFO,
+    MENU,
+    SCROLL,
+    TURN
 };
 
 class Display: public Switchable
@@ -83,6 +92,9 @@ public:
                 new FadeOut(targetBuffer),
                 new FadeIn(targetBuffer, buffer));
             break;
+        case FALL_IN:
+            task = new FallIn(targetBuffer, buffer);
+            break;
         case SLIDE_DOWN:
         case SLIDE_UP:
             task = new ParallelTask(
@@ -114,6 +126,9 @@ public:
                 new FadeOut(targetBuffer, 3, offset),
                 new FadeIn(targetBuffer, buffer, 3, offset));
             break;
+        case FALL_IN:
+            task = new FallIn(targetBuffer, buffer, 3, offset);
+            break;
         case SLIDE_DOWN:
         case SLIDE_UP:
             task = new ParallelTask(
@@ -123,11 +138,11 @@ public:
         addTask(task);
     }
 
-    void schedule(boolean force = false, int interval = 60)
+    void schedule(uint8_t category = 0, int interval = 60)
     {
         if (preparedTask)
         {
-            scheduler.schedule(preparedTask, force, interval);
+            scheduler.schedule(preparedTask, category, interval);
             preparedTask = 0;
         }
     }
@@ -142,19 +157,11 @@ public:
     {
         if (turned != this->turned)
         {
-            SnapshotTask *snapshot = new SnapshotTask(&left, &right);
-            Task *before = new SerialTask(
-                snapshot,
-                new ParallelTask(
+            Task *out = new ParallelTask(
                     new FallOut(&left),
-                    new FallOut(&right)));
-            Task *after = new ParallelTask(
-                new FallIn(&left, (byte**)&snapshot->right),
-                new FallIn(&right, (byte**)&snapshot->left));
-            Task *task;
-            task = new SerialTask(new SerialTask(before, new SwitchTask(this, turned)), after);
-            addTask(task);
-            schedule(true);
+                    new FallOut(&right));
+            addTask(new SerialTask(out, new SwitchTask(this, turned)));
+            schedule(TURN);
         }
     }
 
@@ -164,8 +171,8 @@ public:
         matrix2.setRotation(turned);
         if(turned)
         {
-            left = matrix1.displayBuffer;
-            right = matrix2.displayBuffer;
+            left = matrix2.displayBuffer;
+            right = matrix1.displayBuffer;
         } else {
             left = matrix1.displayBuffer;
             right = matrix2.displayBuffer;

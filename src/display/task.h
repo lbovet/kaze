@@ -86,22 +86,20 @@ public:
         for (uint8_t i = 0; i < QUEUE_SIZE; i++)
         {
             uint8_t p = (current + i) % QUEUE_SIZE;
-            Serial.println(p);
             if (tasks[p] == 0)
             {
-                Serial.println("register");
                 tasks[p] = task;
                 intervals[p] = interval;
                 categories[p] = category;
                 if(p == current) {
-                    Serial.println("start");
                     updateCurrent();
                     return true;
                 } else {
                     return false;
                 }
             } else {
-                if(p != current && categories[p] == category) {
+                if(p != current && category != 0 && categories[p] == category) {
+                    Serial.println("override");
                     delete tasks[p];
                     tasks[p] = task;
                     intervals[p] = interval;
@@ -118,10 +116,8 @@ public:
     {
         if (tasks[current] && chrono.hasPassed(intervals[current]))
         {
-            Serial.println("updating");
             while(tasks[current] && !updateCurrent())
             {
-                Serial.println("finished");
                 delete tasks[current];
                 tasks[current] = 0;
                 categories[current] = 0;

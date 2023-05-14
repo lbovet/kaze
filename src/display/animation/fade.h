@@ -7,10 +7,12 @@ class FadeIn : public InAnimation
 {
 public:
     FadeIn(byte **buffer, byte *source, byte size = 8, byte offset = 0) : InAnimation(buffer, source, size, offset){};
+
     uint8_t update() override
     {
-        if (this->iteration-- > 0)
+        if (this->iteration > 0)
         {
+            iteration--;
             for (byte i = offset; i < offset + size; i++)
             {
                 byte p = 1 << random(8);
@@ -39,8 +41,9 @@ public:
     uint8_t update() override
     {
         init();
-        if (this->iteration-- > 0)
+        if (this->iteration > 0)
         {
+            iteration--;
             for (byte i = offset; i < offset + size; i++)
             {
                 byte p = 1 << random(8);

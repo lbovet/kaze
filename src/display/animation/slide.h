@@ -14,8 +14,9 @@ public:
     uint8_t update() override
     {
         init();
-        if (this->iteration-- > 0)
+        if (this->iteration > 0)
         {
+            iteration--;
             for (byte i = offset; i < offset + size; i++)
             {
                 this->animBuffer[i] = this->direction ? this->animBuffer[i] >> 1 : this->animBuffer[i] << 1;
@@ -39,8 +40,9 @@ public:
     }
     uint8_t update() override
     {
-        if (this->iteration-- > 0)
+        if (this->iteration > 0)
         {
+            iteration--;
             for (byte i = offset; i < offset + size; i++)
             {
                 this->animBuffer[i] = this->direction ? this->source[i - offset] << iteration : this->source[i - offset] >> iteration;
