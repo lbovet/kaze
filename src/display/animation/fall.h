@@ -44,9 +44,9 @@ public:
         if (this->iteration > 0)
         {
             iteration--;
-            for (byte i = offset; i < offset + size; i++)
+            for (byte i = 0; i < size; i++)
             {
-                this->animBuffer[i] = source[i - offset];
+                this->animBuffer[i] = source[i];
                 for (byte j = 0; j < iteration; j++)
                 {
                     byte mask = 0xff >> (j / 3 + random(iteration / 8 + 1));
@@ -55,7 +55,7 @@ public:
                     this->animBuffer[i] = (this->animBuffer[i] & mask) | moving;
                 }
 
-                (*this->targetBuffer)[i] = this->animBuffer[i] << (iteration - 16);
+                (*this->targetBuffer)[i+offset] = this->animBuffer[i] << (iteration - 16);
             }
         }
         return iteration;

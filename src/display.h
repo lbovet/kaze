@@ -153,13 +153,12 @@ public:
         matrix2.setBrightness(brightness);
     }
 
-    void setTurned(boolean turned)
-    {
+    void setTurned(boolean turned) {
         if (turned != this->turned)
         {
             Task *out = new ParallelTask(
-                    new FallOut(&left),
-                    new FallOut(&right));
+                new FallOut(&left),
+                new FallOut(&right));
             addTask(new SerialTask(out, new SwitchTask(this, turned)));
             schedule(TURN);
         }

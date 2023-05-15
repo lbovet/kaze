@@ -99,16 +99,15 @@ public:
                 }
             } else {
                 if(p != current && category != 0 && categories[p] == category) {
-                    Serial.println("override");
                     delete tasks[p];
                     tasks[p] = task;
                     intervals[p] = interval;
                     categories[p] = category;
-                    return false;
                 }
+                return false;
             }
         }
-        // queue full
+        Serial.println(F("Task queue full"));
         return false;
     }
 
@@ -138,7 +137,7 @@ private:
         return tasks[current]->update() > 0;
     }
 
-    static const uint8_t QUEUE_SIZE = 8;
+    static const uint8_t QUEUE_SIZE = 4;
     Task *tasks[QUEUE_SIZE] = {0};
     int intervals[QUEUE_SIZE];
     uint8_t categories[QUEUE_SIZE];

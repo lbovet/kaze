@@ -17,10 +17,10 @@ public:
         if (this->iteration > 0)
         {
             iteration--;
-            for (byte i = offset; i < offset + size; i++)
+            for (byte i = 0; i < size; i++)
             {
                 this->animBuffer[i] = this->direction ? this->animBuffer[i] >> 1 : this->animBuffer[i] << 1;
-                (*this->targetBuffer)[i] = this->animBuffer[i];
+                (*this->targetBuffer)[i+offset] = this->animBuffer[i];
             }
         }
         return iteration;
@@ -43,10 +43,10 @@ public:
         if (this->iteration > 0)
         {
             iteration--;
-            for (byte i = offset; i < offset + size; i++)
+            for (byte i = 0; i < size; i++)
             {
-                this->animBuffer[i] = this->direction ? this->source[i - offset] << iteration : this->source[i - offset] >> iteration;
-                (*this->targetBuffer)[i] = (*this->targetBuffer)[i] | this->animBuffer[i];
+                this->animBuffer[i] = this->direction ? this->source[i] << iteration : this->source[i] >> iteration;
+                (*this->targetBuffer)[i + offset] = (*this->targetBuffer)[i + offset] | this->animBuffer[i];
             }
         }
         return iteration;

@@ -18,13 +18,11 @@ public:
     {
         if (!musicPlayer.begin())
             Serial.println(F("Couldn't find VS1053, do you have the right pins defined?"));
-        Serial.println(F("VS1053 found"));
 
-        musicPlayer.sineTest(0x44, 500);
+        musicPlayer.sineTest(0x44, 200);
 
         if (!SD.begin(CARDCS))
             Serial.println(F("SD failed, or not present"));
-        Serial.println(F("SD OK!"));
 
         printDirectory(SD.open("/"), 0);
 
@@ -38,10 +36,12 @@ public:
     {
         // Start playing a file, then we can do stuff while waiting for it to finish
         if (!musicPlayer.startPlayingFile("/track002.mp3"))
-        {
             Serial.println(F("Could not open file track001.mp3"));
-        }
-        Serial.println(F("Started playing"));
+    }
+
+    void stop()
+    {
+        musicPlayer.stopPlaying();
     }
 
     boolean playing() {
