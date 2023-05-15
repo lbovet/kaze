@@ -3,10 +3,10 @@
 
 #include "SD.h"
 #include "display.h"
-//#include "player.h"
+#include "player.h"
 
 Display display;
-//Player player;
+Player player;
 Chrono chrono, chrono2;
 
 void setup()
@@ -16,7 +16,7 @@ void setup()
   display.begin();
   delay(500);
   Serial.println(freeMemory());
-  //player.begin();
+  player.begin();
   Serial.println(freeMemory());
   display.symbol(ALARM, LEFT, FADE);
   display.digit(0, 2, FADE);
@@ -43,11 +43,10 @@ void loop()
       previousOrientation = orientation;
       Serial.println(orientation);
 
-      //display.setTurned(orientation);
-
-      display.symbol(ALARM, LEFT, SLIDE_UP);
-      display.digit(n % 10, 3, SLIDE_UP);
-      display.digit(n / 10, 2, SLIDE_UP);
+      display.setTurned(orientation);
+      display.symbol(ALARM, LEFT, FALL_IN);
+      display.digit(n % 10, 3, FALL_IN);
+      display.digit(n / 10, 2, FALL_IN);
       display.schedule(TURN);
     }
   }
@@ -61,13 +60,13 @@ void loop()
     if (n > 59)
       n = 0;
     if (n==1) {
-      //player.play();
+      player.play();
     }
     display.digit(n % 10, 3, SLIDE_UP);
     if (n % 10 == 0)
     {
       display.digit(n / 10, 2, SLIDE_DOWN);
-      //player.stop();
+      player.stop();
     }
     display.schedule(SCROLL);
   }

@@ -103,11 +103,12 @@ public:
                     tasks[p] = task;
                     intervals[p] = interval;
                     categories[p] = category;
+                    return false;
                 }
-                return false;
             }
         }
         Serial.println(F("Task queue full"));
+        delete task;
         return false;
     }
 
