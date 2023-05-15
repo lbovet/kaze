@@ -22,7 +22,7 @@ public:
 
     Matrix(uint8_t address)
     {
-        i2c_dev = new Adafruit_I2CDevice(address, &Wire);
+        i2c_dev = new Adafruit_I2CDevice(address);
     }
 
     void begin()

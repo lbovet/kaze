@@ -98,7 +98,10 @@ public:
                     return false;
                 }
             } else {
-                if(p != current && category != 0 && categories[p] == category) {
+                if (p != current && categories[p] != 0 && categories[p] == category)
+                {
+                    Serial.println(F("Replacing task"));
+                    Serial.println(category);
                     delete tasks[p];
                     tasks[p] = task;
                     intervals[p] = interval;
@@ -138,7 +141,7 @@ private:
         return tasks[current]->update() > 0;
     }
 
-    static const uint8_t QUEUE_SIZE = 4;
+    static const uint8_t QUEUE_SIZE = 3;
     Task *tasks[QUEUE_SIZE] = {0};
     int intervals[QUEUE_SIZE];
     uint8_t categories[QUEUE_SIZE];

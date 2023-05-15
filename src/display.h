@@ -55,14 +55,11 @@ enum Transition
 
 enum Category
 {
-    NORMAL = 0,
-    INFO,
-    MENU,
-    SCROLL,
-    TURN
+    MANDATORY = 0,
+    OPTIONAL
 };
 
-class Display: public Switchable
+class Display
 {
 public:
     void begin()
@@ -115,7 +112,7 @@ public:
         }
 
         byte **targetBuffer = position < 2 ? &left : &right;
-        byte offset = (position % 2) * 4 +(position < 2 ? 0: 1);
+        byte offset = (position % 2) * 4 + (position < 2 ? 0 : 1);
 
         Task *task;
 
@@ -153,28 +150,35 @@ public:
         matrix2.setBrightness(brightness);
     }
 
-    void setTurned(boolean turned) {
+    void setTurned(boolean turned)
+    {
         if (turned != this->turned)
         {
             Task *out = new ParallelTask(
                 new FallOut(&left),
                 new FallOut(&right));
-            addTask(new SerialTask(out, new SwitchTask(this, turned)));
-            schedule(TURN);
+            addTask(new SerialTask(out, new SwitchTask(turned)));
+            schedule(MANDATORY);
         }
     }
 
-    void setSwitch(boolean value) override {
-        this->turned = value;
-        matrix1.setRotation(turned);
-        matrix2.setRotation(turned);
-        if(turned)
+    void doTurn()
+    {
+        if (turned != switchValue)
         {
-            left = matrix2.displayBuffer;
-            right = matrix1.displayBuffer;
-        } else {
-            left = matrix1.displayBuffer;
-            right = matrix2.displayBuffer;
+            turned = switchValue;
+            matrix1.setRotation(turned);
+            matrix2.setRotation(turned);
+            if (turned)
+            {
+                left = matrix2.displayBuffer;
+                right = matrix1.displayBuffer;
+            }
+            else
+            {
+                left = matrix1.displayBuffer;
+                right = matrix2.displayBuffer;
+            }
         }
     }
 
@@ -182,6 +186,7 @@ public:
     {
         if (scheduler.update())
         {
+            doTurn();
             matrix1.writeDisplay();
             matrix2.writeDisplay();
         }

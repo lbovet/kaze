@@ -4,9 +4,11 @@
 #include "SD.h"
 #include "display.h"
 #include "player.h"
+#include "touch.h"
 
 Display display;
 Player player;
+Touch touch;
 Chrono chrono, chrono2;
 
 void setup()
@@ -22,6 +24,8 @@ void setup()
   display.digit(0, 2, FADE);
   display.digit(0, 3, FADE);
   display.schedule();
+  Serial.println(freeMemory());
+  touch.begin();
   Serial.println(freeMemory());
   chrono.restart();
 }
@@ -47,8 +51,9 @@ void loop()
       display.symbol(ALARM, LEFT, FALL_IN);
       display.digit(n % 10, 3, FALL_IN);
       display.digit(n / 10, 2, FALL_IN);
-      display.schedule(TURN);
+      display.schedule(MANDATORY);
     }
+    touch.update();
   }
 
   display.update();
@@ -68,7 +73,7 @@ void loop()
       display.digit(n / 10, 2, SLIDE_DOWN);
       player.stop();
     }
-    display.schedule(SCROLL);
+    display.schedule(OPTIONAL);
   }
 
   if(abs(sensor) < 50) {
