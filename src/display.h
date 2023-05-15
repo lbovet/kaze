@@ -55,7 +55,7 @@ enum Transition
 
 enum Category
 {
-    NORMAL,
+    NORMAL = 0,
     INFO,
     MENU,
     SCROLL,

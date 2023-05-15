@@ -1,10 +1,11 @@
-#include <SD.h>
 #include <MemoryFree.h>
 #include <Chrono.h>
 
 #include "display.h"
+#include "player.h"
 
 Display display;
+Player player;
 Chrono chrono;
 
 void setup()
@@ -13,11 +14,16 @@ void setup()
   Serial.println("go");
   display.begin();
   delay(1000);
+  chrono.restart();
+  Serial.println(freeMemory());
+  player.begin();
+  Serial.println(freeMemory());
   display.symbol(ALARM, LEFT, FADE);
   display.digit(0, 2, FADE);
   display.digit(0, 3, FADE);
   display.schedule();
-  chrono.restart();
+  Serial.println(freeMemory());
+  player.play();
 }
 
 long sensor;
@@ -27,8 +33,14 @@ uint8_t n = 0;
 
 void loop()
 {
-  display.update();
+  if (chrono.hasPassed(100))
+  {
+    chrono.restart();
+    Serial.println(freeMemory());
+  }
 
+  display.update();
+/*
   if (chrono.hasPassed(1000))
   {
     chrono.restart();
@@ -61,6 +73,6 @@ void loop()
     display.digit(n % 10, 3, FALL_IN);
     display.digit(n / 10, 2, FALL_IN);
     display.schedule(TURN);
-  }
+  }*/
 
 }
