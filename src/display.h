@@ -169,6 +169,11 @@ public:
         turned = value;
     }
 
+    void setBar(byte markers, uint8_t progress = 0)
+    {
+        this->bar = markers | (0xff << 16 - progress);
+    }
+
     void setBrightness(uint8_t brightness)
     {
         matrix1.setBrightness(brightness);
@@ -251,9 +256,16 @@ public:
                         break;
                 }
             }
+            if ((transition != TURN || iteration == 0) && bit(i) & bar)
+            {
+                displayBuffer[i] = displayBuffer[i] | 1;
+            }
         }
         matrix1.writeDisplay(orientation ? displayBuffer + 8 : displayBuffer, orientation);
         matrix2.writeDisplay(orientation ? displayBuffer : displayBuffer + 8, orientation);
+        for(uint8_t i=0; i < 16; i++) {
+            displayBuffer[i] = displayBuffer[i] & 0xfffe;
+        }
         if(orientation != turned && iteration == 0) {
             orientation = turned;
         }
@@ -269,6 +281,7 @@ private:
     uint8_t iteration = 0;
     Transition transition;
     uint8_t interval;
+    uint16_t bar = 0;
     Matrix matrix1 = Matrix(0x70);
     Matrix matrix2 = Matrix(0x71);
 };

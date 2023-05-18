@@ -21,6 +21,7 @@ void setup()
   player.begin();
   Serial.println(freeMemory());
   display.show(ALARM, 0, true, FADE);
+  display.setBar(0x02 | 0x20);
   Serial.println(freeMemory());
   touch.begin();
   Serial.println(freeMemory());
@@ -61,7 +62,8 @@ void loop()
     if (n==1) {
       player.play();
     }
-    display.show(ALARM, n, true, SLIDE_UP);
+    display.setBar(0x02 | 0x20, 8 - ((short)(n * 8) / 60));
+    display.show(3, n, SLIDE_UP);
     if (n % 10 == 0)
     {
       player.stop();
