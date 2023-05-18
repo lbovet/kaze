@@ -1,12 +1,13 @@
 #ifndef DISPLAY_H
 #define DISPLAY_H
 
-#include "display/matrix.h"
-#include "display/animation/fade.h"
-#include "display/animation/fall.h"
-#include "display/animation/slide.h"
-#include "display/task.h"
-#include "display/switch.h"
+#include <Chrono.h>
+
+#include "matrix.h"
+
+#define BLANK 0xff
+#define DIRTY 0xfd
+#define SYMBOL 0xfe
 
 const byte symbols[] PROGMEM = {
     0x7c, 0x44, 0x7c, 0x00, 0x44, 0x7c, 0x04, 0x00, 0x5c, 0x54, 0x74, 0x00,
@@ -36,27 +37,17 @@ enum Symbol
     RANDOM = 14,
     SLEEP = 15,
     CHILL = 16,
-    LOVE = 17
-};
-
-enum Position
-{
-    LEFT,
-    RIGHT
+    LOVE = 17,
+    EMPTY = 255
 };
 
 enum Transition
 {
+    NONE,
     FADE,
     SLIDE_DOWN,
     SLIDE_UP,
-    FALL_IN
-};
-
-enum Category
-{
-    MANDATORY = 0,
-    OPTIONAL
+    TURN
 };
 
 class Display
@@ -66,82 +57,116 @@ public:
     {
         matrix1.begin();
         matrix2.begin();
-        left = matrix1.displayBuffer;
-        right = matrix2.displayBuffer;
     }
 
-    void symbol(Symbol symbol, Position position, Transition transition)
+    void show(Symbol symbol, byte right, boolean pad, Transition transition)
     {
-        byte buffer[8];
-        for (byte j = 0; j < 8; j++)
+        chrono.restart();
+        if (iteration > 0)
         {
-            buffer[j] = pgm_read_word_near(symbols + symbol * 8 + j);
+            if (this->transition == TURN)
+            {
+                orientation = turned;
+            }
+            this->transition = NONE;
+            update(true);
+            data[0] = DIRTY;
+            data[1] = DIRTY;
+            data[2] = DIRTY;
+            data[3] = DIRTY;
         }
 
-        Task *task;
-
-        byte **targetBuffer = (position == LEFT ? &left : &right);
-
-        switch (transition)
+        mask = 0;
+        if(data[1] != symbol)
         {
-        case FADE:
-            task = new ParallelTask(
-                new FadeOut(targetBuffer),
-                new FadeIn(targetBuffer, buffer));
-            break;
-        case FALL_IN:
-            task = new FallIn(targetBuffer, buffer);
-            break;
-        case SLIDE_DOWN:
-        case SLIDE_UP:
-            task = new ParallelTask(
-                new SlideOut(targetBuffer, transition == SLIDE_DOWN),
-                new SlideIn(targetBuffer, buffer, transition == SLIDE_DOWN));
-            break;
+            data[0] = SYMBOL;
+            data[1] = symbol;
+            mask |= 0x00ff;
+        }
+        if (data[2] != right / 10)
+        {
+            mask |= 0x0f00;
+            data[2] = right == BLANK ? BLANK : (right < 10 && !pad ? BLANK : right / 10);
+        }
+        if (data[3] != right % 10)
+        {
+            mask |= 0xf000;
+            data[3] = right == BLANK ? BLANK : right % 10;
         }
 
-        addTask(task);
+        if(transition == TURN)
+        {
+            mask = 0xffff;
+            iteration = 48;
+            interval = 30;
+        }
+        else
+        {
+            iteration = 8;
+            interval = 60;
+        }
+
+        this->transition = transition;
+        update();
     }
 
-    void digit(uint8_t number, uint8_t position, Transition transition)
+    void show(byte left, byte right, Transition transition)
     {
-        byte buffer[4];
-        for (byte j = 0; j < 4; j++)
+        chrono.restart();
+        if (iteration > 0)
         {
-            buffer[j] = pgm_read_word_near(symbols + number * 4 + j);
+            if(this->transition == TURN) {
+                orientation = turned;
+            }
+            this->transition = NONE;
+            update(true);
+            data[0] = DIRTY;
+            data[1] = DIRTY;
+            data[2] = DIRTY;
+            data[3] = DIRTY;
         }
 
-        byte **targetBuffer = position < 2 ? &left : &right;
-        byte offset = (position % 2) * 4 + (position < 2 ? 0 : 1);
-
-        Task *task;
-
-        switch (transition)
+        mask = 0;
+        if (data[0] != left / 10)
         {
-        case FADE:
-            task = new ParallelTask(
-                new FadeOut(targetBuffer, 3, offset),
-                new FadeIn(targetBuffer, buffer, 3, offset));
-            break;
-        case FALL_IN:
-            task = new FallIn(targetBuffer, buffer, 3, offset);
-            break;
-        case SLIDE_DOWN:
-        case SLIDE_UP:
-            task = new ParallelTask(
-                new SlideOut(targetBuffer, transition == SLIDE_DOWN, 3, offset),
-                new SlideIn(targetBuffer, buffer, transition == SLIDE_DOWN, 3, offset));
+            mask |= 0x000f;
+            data[0] = left == BLANK ? BLANK : left / 10;
         }
-        addTask(task);
+        if (data[1] != left % 10)
+        {
+            mask |= 0x00f0;
+            data[1] = left == BLANK ? BLANK : left % 10;
+        }
+        if (data[2] != right / 10)
+        {
+            mask |= 0x0f00;
+            data[2] = right == BLANK ? BLANK : right / 10;
+        }
+        if (data[3] != right % 10)
+        {
+            mask |= 0xf000;
+            data[3] = right == BLANK ? BLANK : right % 10;
+        }
+
+        if (transition == TURN)
+        {
+            mask = 0xffff;
+            iteration = 48;
+            interval = 30;
+        }
+        else
+        {
+            iteration = 8;
+            interval = 60;
+        }
+
+        this->transition = transition;
+        update();
     }
 
-    void schedule(uint8_t category = 0, int interval = 60)
+    void setTurned(boolean value)
     {
-        if (preparedTask)
-        {
-            scheduler.schedule(preparedTask, category, interval);
-            preparedTask = 0;
-        }
+        turned = value;
     }
 
     void setBrightness(uint8_t brightness)
@@ -150,69 +175,102 @@ public:
         matrix2.setBrightness(brightness);
     }
 
-    void setTurned(boolean turned)
+    void update(boolean force = false)
     {
-        if (turned != this->turned)
+        if(!chrono.hasPassed(interval) || iteration == 0)
         {
-            Task *out = new ParallelTask(
-                new FallOut(&left),
-                new FallOut(&right));
-            addTask(new SerialTask(out, new SwitchTask(turned)));
-            schedule(MANDATORY);
+            return;
         }
-    }
-
-    void doTurn()
-    {
-        if (turned != switchValue)
+        iteration--;
+        chrono.restart();
+        byte source;
+        for (uint8_t i = 0; i < 16; i++)
         {
-            turned = switchValue;
-            matrix1.setRotation(turned);
-            matrix2.setRotation(turned);
-            if (turned)
+            if (bit(i) & mask)
             {
-                left = matrix2.displayBuffer;
-                right = matrix1.displayBuffer;
-            }
-            else
-            {
-                left = matrix1.displayBuffer;
-                right = matrix2.displayBuffer;
+                if(i < 8 && data[0] == SYMBOL) {
+                    if(data[1] == EMPTY) {
+                        source = 0;
+                    } else {
+                        source = pgm_read_word_near(symbols + data[1] * 8 + i);
+                    }
+                } else {
+                    if(data[i/4] == BLANK) {
+                        source = 0;
+                    } else {
+                        if(i==8) {
+                            source = 0;
+                        } else {
+                            source = pgm_read_word_near(symbols + data[i/4] * 4 + i % 4 - (i>8 ? 1 : 0));
+                        }
+                    }
+                }
+
+                switch(transition) {
+                    case NONE:
+                        displayBuffer[i] = source;
+                        iteration = 0;
+                        break;
+                    case FADE:
+                        for(uint8_t p = random(8); displayBuffer[i] != source; p++) {
+                            if( (source ^ displayBuffer[i]) & bit(p % 8)) {
+                                displayBuffer[i] = (source & bit(p % 8)) ? displayBuffer[i] | bit(p % 8) : displayBuffer[i] & ~bit(p % 8);
+                                break;
+                            }
+                        }
+                        break;
+                    case SLIDE_DOWN:
+                        displayBuffer[i] = (displayBuffer[i] >> 1) | (source << iteration);
+                        break;
+                    case SLIDE_UP:
+                        displayBuffer[i] = (displayBuffer[i] << 1) | (source >> iteration);
+                        break;
+                    case TURN:
+                        if(iteration > 24)
+                        {
+                            byte mask = (1 << ((iteration - 32) / 2 - (random((iteration-24) / 4) / ((iteration-24) / 4 - 1)))) - 1;
+                            byte moving = displayBuffer[i] & ~mask;
+                            moving = moving << 1;
+                            displayBuffer[i] = (displayBuffer[i] & mask) | moving;
+                        }
+                        if(iteration == 24)
+                        {
+                            orientation = turned;
+                        }
+                        if(iteration <= 24) {
+
+                            for (byte j = 0; j < iteration; j++)
+                            {
+                                byte mask = 0xff >> (j / 3 + random((iteration) / 8 + 1));
+                                byte moving = source & ~mask;
+                                moving = moving << 1;
+                                source = (source & mask) | moving;
+                            }
+                            displayBuffer[i] = source << (iteration - 16);
+                        }
+                        break;
+                }
             }
         }
-    }
-
-    void update()
-    {
-        if (scheduler.update())
-        {
-            doTurn();
-            matrix1.writeDisplay();
-            matrix2.writeDisplay();
+        matrix1.writeDisplay(orientation ? displayBuffer + 8 : displayBuffer, orientation);
+        matrix2.writeDisplay(orientation ? displayBuffer : displayBuffer + 8, orientation);
+        if(orientation != turned && iteration == 0) {
+            orientation = turned;
         }
     }
 
 private:
-    void addTask(Task *task)
-    {
-        if (preparedTask)
-        {
-            preparedTask = new ParallelTask(preparedTask, task);
-        }
-        else
-        {
-            preparedTask = task;
-        }
-    }
-
-    Task *preparedTask = 0;
-    boolean initialized = false;
+    Chrono chrono;
+    byte data[4] = { BLANK, BLANK, BLANK, BLANK };
+    uint16_t mask;
+    byte displayBuffer[16] = {0};
+    boolean orientation = false;
     boolean turned = false;
+    uint8_t iteration = 0;
+    Transition transition;
+    uint8_t interval;
     Matrix matrix1 = Matrix(0x70);
     Matrix matrix2 = Matrix(0x71);
-    byte *left;
-    byte *right;
-    Scheduler scheduler;
 };
 
 #endif

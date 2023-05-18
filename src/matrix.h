@@ -18,7 +18,6 @@
 class Matrix
 {
 public:
-    byte displayBuffer[8] = {0};
 
     Matrix(uint8_t address)
     {
@@ -29,12 +28,9 @@ public:
     {
         i2c_dev->begin();
 
-        // turn on oscillator
-        byte buffer[1] = {0x21};
+        byte buffer[1] = {0x21}; // turn on oscillator
         i2c_dev->write(buffer, 1);
 
-        clear();
-        writeDisplay();
         blinkRate(HT16K33_BLINK_OFF);
         setBrightness(1);
     }
@@ -42,7 +38,7 @@ public:
     void setBrightness(uint8_t b)
     {
         if (b > 15)
-            b = 15; // limit to max brightness
+            b = 15;
         byte buffer = HT16K33_CMD_BRIGHTNESS | b;
         i2c_dev->write(&buffer, 1);
     }
@@ -50,12 +46,12 @@ public:
     void blinkRate(uint8_t b)
     {
         if (b > 3)
-            b = 0; // turn off if not sure
+            b = 0;
         byte buffer = HT16K33_BLINK_CMD | HT16K33_BLINK_DISPLAYON | (b << 1);
         i2c_dev->write(&buffer, 1);
     }
 
-    void writeDisplay()
+    void writeDisplay(byte* displayBuffer, boolean rotation)
     {
         byte buffer[17];
         buffer[0] = 0x00;
@@ -69,21 +65,7 @@ public:
             }
             buffer[1 + 2 * i] = (line >> 1) | (line << 7);
         }
-
         i2c_dev->write(buffer, 17);
-    }
-
-    void clear()
-    {
-        for (byte i = 0; i < 8; i++)
-        {
-            displayBuffer[i] = 0;
-        }
-    }
-
-    void setRotation(boolean rotation)
-    {
-        this->rotation = rotation;
     }
 
 private:
@@ -96,7 +78,6 @@ private:
     }
 
     Adafruit_I2CDevice *i2c_dev;
-    boolean rotation = false;
 };
 
 #endif

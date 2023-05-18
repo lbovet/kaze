@@ -20,10 +20,7 @@ void setup()
   Serial.println(freeMemory());
   player.begin();
   Serial.println(freeMemory());
-  display.symbol(ALARM, LEFT, FADE);
-  display.digit(0, 2, FADE);
-  display.digit(0, 3, FADE);
-  display.schedule();
+  display.show(ALARM, 0, true, FADE);
   Serial.println(freeMemory());
   touch.begin();
   Serial.println(freeMemory());
@@ -48,10 +45,7 @@ void loop()
       Serial.println(orientation);
 
       display.setTurned(orientation);
-      display.symbol(ALARM, LEFT, FALL_IN);
-      display.digit(n % 10, 3, FALL_IN);
-      display.digit(n / 10, 2, FALL_IN);
-      display.schedule(MANDATORY);
+      display.show(ALARM, n, true, TURN);
     }
     touch.update();
   }
@@ -67,13 +61,11 @@ void loop()
     if (n==1) {
       player.play();
     }
-    display.digit(n % 10, 3, SLIDE_UP);
+    display.show(ALARM, n, true, SLIDE_UP);
     if (n % 10 == 0)
     {
-      display.digit(n / 10, 2, SLIDE_DOWN);
       player.stop();
     }
-    display.schedule(OPTIONAL);
   }
 
   if(abs(sensor) < 50) {
