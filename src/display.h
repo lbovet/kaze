@@ -26,8 +26,8 @@ const byte symbols[] PROGMEM = {
 enum Symbol
 {
     CLOCK = 5,
-    ALARM = 6,
-    TIMER = 7,
+    BELL = 6,
+    HOURGLASS = 7,
     MUSIC = 8,
     VOLUME = 9,
     NEXT = 10,
@@ -43,11 +43,12 @@ enum Symbol
 
 enum Transition
 {
-    NONE,
+    REPLACE,
     FADE,
+    SLIDE,
     SLIDE_DOWN,
     SLIDE_UP,
-    TURN
+    FALL
 };
 
 class Display
@@ -64,11 +65,11 @@ public:
         chrono.restart();
         if (iteration > 0)
         {
-            if (this->transition == TURN)
+            if (this->transition == FALL)
             {
                 orientation = turned;
             }
-            this->transition = NONE;
+            this->transition = REPLACE;
             update(true);
             data[0] = DIRTY;
             data[1] = DIRTY;
@@ -94,7 +95,7 @@ public:
             data[3] = right == BLANK ? BLANK : right % 10;
         }
 
-        if(transition == TURN)
+        if(transition == FALL)
         {
             mask = 0xffff;
             iteration = 48;
@@ -115,10 +116,10 @@ public:
         chrono.restart();
         if (iteration > 0)
         {
-            if(this->transition == TURN) {
+            if(this->transition == FALL) {
                 orientation = turned;
             }
-            this->transition = NONE;
+            this->transition = REPLACE;
             update(true);
             data[0] = DIRTY;
             data[1] = DIRTY;
@@ -148,7 +149,7 @@ public:
             data[3] = right == BLANK ? BLANK : right % 10;
         }
 
-        if (transition == TURN)
+        if (transition == FALL)
         {
             mask = 0xffff;
             iteration = 48;
@@ -171,7 +172,7 @@ public:
 
     void setBar(byte markers, uint8_t progress = 0)
     {
-        this->bar = markers | (0xff << 16 - progress);
+        this->bar = markers | (0xff << (16 - progress));
     }
 
     void setBrightness(uint8_t brightness)
@@ -212,7 +213,7 @@ public:
                 }
 
                 switch(transition) {
-                    case NONE:
+                    case REPLACE:
                         displayBuffer[i] = source;
                         iteration = 0;
                         break;
@@ -224,13 +225,20 @@ public:
                             }
                         }
                         break;
+                    case SLIDE:
+                        if((i > 3 && i <8) || i > 11) {
+                            displayBuffer[i] = (displayBuffer[i] << 1) | (source >> iteration);
+                        } else {
+                            displayBuffer[i] = (displayBuffer[i] >> 1) | (source << iteration);
+                        }
+                        break;
                     case SLIDE_DOWN:
                         displayBuffer[i] = (displayBuffer[i] >> 1) | (source << iteration);
                         break;
                     case SLIDE_UP:
                         displayBuffer[i] = (displayBuffer[i] << 1) | (source >> iteration);
                         break;
-                    case TURN:
+                    case FALL:
                         if(iteration > 24)
                         {
                             byte mask = (1 << ((iteration - 32) / 2 - (random((iteration-24) / 4) / ((iteration-24) / 4 - 1)))) - 1;
@@ -256,7 +264,7 @@ public:
                         break;
                 }
             }
-            if ((transition != TURN || iteration == 0) && bit(i) & bar)
+            if ((transition != FALL || iteration == 0) && bit(i) & bar)
             {
                 displayBuffer[i] = displayBuffer[i] | 1;
             }

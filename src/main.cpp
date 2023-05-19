@@ -5,78 +5,56 @@
 #include "display.h"
 #include "player.h"
 #include "touch.h"
+#include "time.h"
+#include "event.h"
+#include "orientation.h"
 
+EventBus event;
 Display display;
 Player player;
 Touch touch;
-Chrono chrono, chrono2;
+Orientation orientation;
+Time time;
+Chrono longDelay, shortDelay;
 
 void setup()
 {
   Serial.begin(9600);
   Serial.println(F("go"));
   display.begin();
-  delay(500);
-  Serial.println(freeMemory());
-  player.begin();
-  Serial.println(freeMemory());
-  display.show(ALARM, 0, true, FADE);
   display.setBar(0x02 | 0x20);
-  Serial.println(freeMemory());
+  player.begin();
   touch.begin();
+  time.begin();
+  longDelay.restart();
   Serial.println(freeMemory());
-  chrono.restart();
 }
-
-long sensor;
-boolean orientation;
-boolean previousOrientation;
-uint8_t n = 0;
 
 void loop()
 {
-  if (chrono2.hasPassed(100))
+  if (shortDelay.hasPassed(100))
   {
-    chrono2.restart();
-    Serial.println(freeMemory());
-
-    if (orientation != previousOrientation)
-    {
-      previousOrientation = orientation;
-      Serial.println(orientation);
-
-      display.setTurned(orientation);
-      display.show(ALARM, n, true, TURN);
-    }
+    shortDelay.restart();
     touch.update();
+
+    if (orientation.update())
+    {
+        Serial.println(orientation.value());
+        display.setTurned(orientation.value());
+        display.show(time.hour(), time.minute(), FALL);
+    }
+  }
+
+  if (longDelay.hasPassed(500))
+  {
+    Serial.println(freeMemory());
+    longDelay.restart();
+    if(time.update())
+    {
+      display.setBar(0x02 | 0x20, 8 - ((short)(time.second() * 8) / 60));
+      display.show(time.hour(), time.minute(), SLIDE);
+    }
   }
 
   display.update();
-
-  if (chrono.hasPassed(1000))
-  {
-    chrono.restart();
-    n++;
-    if (n > 59)
-      n = 0;
-    if (n==1) {
-      player.play();
-    }
-    display.setBar(0x02 | 0x20, 8 - ((short)(n * 8) / 60));
-    display.show(3, n, SLIDE_UP);
-    if (n % 10 == 0)
-    {
-      player.stop();
-    }
-  }
-
-  if(abs(sensor) < 50) {
-    if(analogRead(A0) < 512)
-      sensor --;
-    else
-      sensor ++;
-  } else {
-    sensor = 0;
-  }
-  orientation = sensor > 0;
 }
