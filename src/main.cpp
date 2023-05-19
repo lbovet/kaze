@@ -8,13 +8,16 @@
 #include "time.h"
 #include "event.h"
 #include "orientation.h"
+#include "state.h"
 
-EventBus event;
+EventBus bus;
 Display display;
 Player player;
+Time time;
+StateMachine stateMachine(&display, &player, &time);
 Touch touch;
 Orientation orientation;
-Time time;
+
 Chrono longDelay, shortDelay;
 
 void setup()
@@ -22,12 +25,10 @@ void setup()
   Serial.begin(9600);
   Serial.println(F("go"));
   display.begin();
-  display.setBar(0x02 | 0x20);
   player.begin();
   touch.begin();
   time.begin();
-  longDelay.restart();
-  Serial.println(freeMemory());
+  bus.post(INIT);
 }
 
 void loop()
@@ -36,12 +37,9 @@ void loop()
   {
     shortDelay.restart();
     touch.update();
-
     if (orientation.update())
     {
-        Serial.println(orientation.value());
-        display.setTurned(orientation.value());
-        display.show(time.hour(), time.minute(), FALL);
+      bus.post(orientation.value() ? TURN_DOWN : TURN_UP);
     }
   }
 
@@ -49,12 +47,16 @@ void loop()
   {
     Serial.println(freeMemory());
     longDelay.restart();
-    if(time.update())
+    if (time.update())
     {
-      display.setBar(0x02 | 0x20, 8 - ((short)(time.second() * 8) / 60));
-      display.show(time.hour(), time.minute(), SLIDE);
+      bus.post(TIME);
     }
   }
 
+  Event event = bus.next();
+  if (stateMachine.update(event))
+  {
+    bus.acknowledge(event);
+  }
   display.update();
 }

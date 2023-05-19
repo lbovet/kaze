@@ -32,9 +32,6 @@ public:
         buffer[0] = 0x21; // turn on oscillator
         i2c_dev->write(buffer, 1);
 
-        blinkRate(HT16K33_BLINK_OFF);
-        setBrightness(1);
-        
         buffer[0] = 0x00;
 
         for (byte i = 0; i < 8; i++)
@@ -42,6 +39,9 @@ public:
             buffer[1 + 2 * i] = 0;
         }
         i2c_dev->write(buffer, 17);
+
+        blinkRate(HT16K33_BLINK_OFF);
+        setBrightness(1);
     }
 
     void setBrightness(uint8_t b)

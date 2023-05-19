@@ -5,13 +5,17 @@
 #include <Chrono.h>
 
 enum Event {
-    IDLE = 0,
+    NOTHING = 0,
+    INIT,
     TAP,
-    UP,
-    DOWN,
     PRESS,
+    SWIPE_UP,
+    SWIPE_DOWN,
+    SCROLL_UP,
+    SCROLL_DOWN,
     DELAY,
-    TURN,
+    TURN_UP,
+    TURN_DOWN,
     TIME,
     ALARM
 };
@@ -30,14 +34,14 @@ public:
     }
 
     Event next() {
-        for(Event event = IDLE; event <= ALARM; event = (Event)((int)event+1))
+        for(Event event = NOTHING; event <= ALARM; event = (Event)((int)event+1))
         {
             if(state & bit(event)) {
                 if(event != DELAY || chrono.hasPassed(delay))
                     return event;
             }
         }
-        return IDLE;
+        return NOTHING;
     }
 
     void acknowledge(Event event)
