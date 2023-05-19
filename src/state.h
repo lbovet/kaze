@@ -8,46 +8,109 @@
 
 enum State
 {
-    IDLE
+    IDLE,
+    ANIMATION,
+    TIME_SET
 };
 
 class StateMachine
 {
 public:
-    StateMachine(Display *display, Player *player, Time *time) : display(display), player(player), time(time) {}
+    StateMachine(EventBus *bus, Display *display, Player *player, Time *time) : bus(bus), display(display), player(player), time(time) {}
 
-    boolean update(Event event)
+    void update()
     {
-        boolean consumed = true;
-
-        switch (state())
+        Event event = bus->next();
+        if (event)
         {
-        case IDLE:
-            switch (event)
-            {
-            case INIT:
-                display->show(time->hour(), time->minute(), FADE);
-                break;
-            case TIME:
-                display->setBar(0x02 | 0x20, 8 - ((short)(time->second() * 8) / 60));
-                display->show(time->hour(), time->minute(), SLIDE);
-                break;
-            case TURN_DOWN:
-                display->setTurned(true);
-                display->show(time->hour(), time->minute(), FALL);
-                break;
-            case TURN_UP:
-                display->setTurned(false);
-                display->show(time->hour(), time->minute(), FALL);
-                break;
-            default:
-                consumed = false;
+            if(event != TIME) {
+                Serial.print("event ");
+                Serial.print(event);
+                Serial.print(" state ");
+                Serial.println(state());
             }
-            break;
-        default:
-            consumed = false;
+            switch (state())
+            {
+            case IDLE:
+                switch (event)
+                {
+                case INIT:
+                    display->show(time->hour(), time->minute(), FADE);
+                    push(ANIMATION);
+                    bus->post(DELAY, 500);
+                    bus->acknowledge(event);
+                    break;
+                case TIME:
+                    display->show(time->hour(), time->minute(), SLIDE);
+                    break;
+                case TURN_DOWN:
+                    display->setTurned(true);
+                    display->setBar(0x02 | 0x20, 8 - ((short)(time->second() * 8) / 60));
+                    display->show(time->hour(), time->minute(), FALL);
+                    push(ANIMATION);
+                    bus->post(DELAY, 2000);
+                    bus->acknowledge(event);
+                    break;
+                case TURN_UP:
+                    display->setTurned(false);
+                    display->setBar(0,0);
+                    display->show(time->hour(), time->minute(), FALL);
+                    push(ANIMATION);
+                    bus->post(DELAY, 2000);
+                    bus->acknowledge(event);
+                    break;
+                case TAP:
+                    display->show(CLOCK, time->minute(), true, FADE);
+                    set(TIME_SET);
+                default:
+                    break;
+                }
+                break;
+            case ANIMATION:
+                switch (event)
+                {
+                case DELAY:
+                    pop();
+                    break;
+                default:
+                    break;
+                }
+                break;
+            case TIME_SET:
+                switch (event)
+                {
+                case TAP:
+                    set(IDLE);
+                    bus->post(INIT);
+                    break;
+                case SWIPE_UP:
+                    display->show(CLOCK, time->minute()+1, true, SLIDE_UP);
+                    break;
+                case SWIPE_DOWN:
+                    display->show(CLOCK, time->minute() -1, true, SLIDE_DOWN);
+                    break;
+                default:
+                    break;
+                }
+            default:
+                break;
+            }
+
+            switch(event) {
+                case DELAY:
+                case TIME:
+                case TOUCH:
+                case TAP:
+                case PRESS:
+                case SWIPE_UP:
+                case SWIPE_DOWN:
+                case SCROLL_UP:
+                case SCROLL_DOWN:
+                    bus->acknowledge(event);
+                default:
+                    break; // explicit acknowledge
+            }
         }
-        return consumed;
     }
 
 private:
@@ -71,6 +134,7 @@ private:
     State stacked;
     State current = IDLE;
 
+    EventBus *bus;
     Display *display;
     Player *player;
     Time *time;

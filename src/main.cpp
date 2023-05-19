@@ -14,7 +14,7 @@ EventBus bus;
 Display display;
 Player player;
 Time time;
-StateMachine stateMachine(&display, &player, &time);
+StateMachine stateMachine(&bus, &display, &player, &time);
 Touch touch;
 Orientation orientation;
 
@@ -24,11 +24,12 @@ void setup()
 {
   Serial.begin(9600);
   Serial.println(F("go"));
+  time.begin();
   display.begin();
   player.begin();
   touch.begin();
-  time.begin();
   bus.post(INIT);
+  delay(100);
 }
 
 void loop()
@@ -36,16 +37,16 @@ void loop()
   if (shortDelay.hasPassed(100))
   {
     shortDelay.restart();
-    touch.update();
+    bus.post(touch.update());
     if (orientation.update())
     {
       bus.post(orientation.value() ? TURN_DOWN : TURN_UP);
     }
   }
 
-  if (longDelay.hasPassed(500))
+  if (longDelay.hasPassed(1000))
   {
-    Serial.println(freeMemory());
+    //Serial.println(freeMemory());
     longDelay.restart();
     if (time.update())
     {
@@ -53,10 +54,6 @@ void loop()
     }
   }
 
-  Event event = bus.next();
-  if (stateMachine.update(event))
-  {
-    bus.acknowledge(event);
-  }
+  stateMachine.update();
   display.update();
 }

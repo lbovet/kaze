@@ -7,6 +7,7 @@
 enum Event {
     NOTHING = 0,
     INIT,
+    TOUCH,
     TAP,
     PRESS,
     SWIPE_UP,
@@ -20,21 +21,25 @@ enum Event {
     ALARM
 };
 
+#define LAST_EVENT ALARM
+
 class EventBus
 {
 public:
     void post(Event event, short delay = 0)
     {
-        state = state | bit(event);
-        if(delay)
-        {
-            this->delay = delay;
-            chrono.restart();
+        if(event != NOTHING) {
+            state = state | bit(event);
+            if(delay)
+            {
+                this->delay = delay;
+                chrono.restart();
+            }
         }
     }
 
     Event next() {
-        for(Event event = NOTHING; event <= ALARM; event = (Event)((int)event+1))
+        for(Event event = NOTHING; event <= LAST_EVENT; event = (Event)((int)event+1))
         {
             if(state & bit(event)) {
                 if(event != DELAY || chrono.hasPassed(delay))
@@ -51,7 +56,7 @@ public:
 private:
     Chrono chrono;
     short delay;
-    uint16_t state = {0};
+    uint16_t state = 0;
 };
 
 #endif

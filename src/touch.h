@@ -2,11 +2,12 @@
 #define TOUCH_H
 
 #include <Wire.h>
-#include "Adafruit_MPR121.h"
+#include <Adafruit_MPR121.h>
+#include <Chrono.h>
 
-#ifndef _BV
-#define _BV(bit) (1 << (bit))
-#endif
+#include "event.h"
+
+#define PRESS_DELAY 1000
 
 class Touch
 {
@@ -17,37 +18,62 @@ public:
         {
             Serial.println("MPR121 not found, check wiring?");
         }
+        cap.setThresholds(0x10, 0x20);
     }
 
-    void update()
+    Event update()
     {
+        Event event = NOTHING;
         current = cap.touched();
 
-        for (uint8_t i = 0; i < 12; i++)
+        if (current != last)
         {
-            // it if *is* touched and *wasnt* touched before, alert!
-            if ((current & _BV(i)) && !(last & _BV(i)))
+            if (last == 0)
             {
-                Serial.print(i);
-                Serial.println(" touched");
-                Serial.print(cap.filteredData(i));
-                Serial.print(" ");
-                Serial.println(cap.baselineData(i));
+                event = TOUCH;
+                chrono.restart();
             }
-            // if it *was* touched and now *isnt*, alert!
-            if (!(current & _BV(i)) && (last & _BV(i)))
+            else
             {
-                Serial.print(i);
-                Serial.println(" released");
+                if (current == 0)
+                {
+                    if (!hold && !chrono.hasPassed(PRESS_DELAY))
+                    {
+                        event = TAP;
+                    }
+                    hold = false;
+                }
+                else
+                {
+                    if (!hold)
+                    {
+                        hold = true;
+                        event = current > last ? SWIPE_UP : SWIPE_DOWN;
+                    }
+                }
+            }
+        }
+        else
+        {
+            if (current)
+            {
+                if (chrono.hasPassed(PRESS_DELAY) && !hold)
+                {
+                    event = PRESS;
+                    hold = true;
+                }
             }
         }
 
         last = current;
+        return event;
     }
 
 private:
+    Chrono chrono;
     uint16_t last = 0;
     uint16_t current = 0;
+    boolean hold = 0;
     Adafruit_MPR121 cap;
 };
 
