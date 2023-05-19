@@ -2,12 +2,12 @@
 #include <Chrono.h>
 
 #include "SD.h"
-#include "display.h"
-#include "player.h"
-#include "touch.h"
-#include "time.h"
-#include "event.h"
-#include "orientation.h"
+#include "output/display.h"
+#include "output/player.h"
+#include "input/touch.h"
+#include "input/time.h"
+#include "input/event.h"
+#include "input/orientation.h"
 #include "state.h"
 
 EventBus bus;

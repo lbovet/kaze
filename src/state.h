@@ -1,10 +1,10 @@
 #ifndef STATE_H
 #define STATE_H
 
-#include "event.h"
-#include "display.h"
-#include "player.h"
-#include "time.h"
+#include "input/event.h"
+#include "input/time.h"
+#include "output/display.h"
+#include "output/player.h"
 
 enum State
 {
