@@ -78,7 +78,7 @@ public:
         }
 
         mask = 0;
-        if(data[1] != symbol)
+        if (data[1] != symbol)
         {
             data[0] = SYMBOL;
             data[1] = symbol;
@@ -95,7 +95,7 @@ public:
             data[3] = right == BLANK ? BLANK : right % 10;
         }
 
-        if(transition == FALL)
+        if (transition == FALL)
         {
             mask = 0xffff;
             iteration = 48;
@@ -116,7 +116,8 @@ public:
         chrono.restart();
         if (iteration > 0)
         {
-            if(this->transition == FALL) {
+            if (this->transition == FALL)
+            {
                 orientation = turned;
             }
             this->transition = REPLACE;
@@ -183,7 +184,7 @@ public:
 
     void update(boolean force = false)
     {
-        if(!chrono.hasPassed(interval) || iteration == 0)
+        if (!chrono.hasPassed(interval) || iteration == 0)
         {
             return;
         }
@@ -194,74 +195,93 @@ public:
         {
             if (bit(i) & mask)
             {
-                if(i < 8 && data[0] == SYMBOL) {
-                    if(data[1] == EMPTY) {
+                if (i < 8 && data[0] == SYMBOL)
+                {
+                    if (data[1] == EMPTY)
+                    {
                         source = 0;
-                    } else {
+                    }
+                    else
+                    {
                         source = pgm_read_word_near(symbols + data[1] * 8 + i);
                     }
-                } else {
-                    if(data[i/4] == BLANK) {
+                }
+                else
+                {
+                    if (data[i / 4] == BLANK)
+                    {
                         source = 0;
-                    } else {
-                        if(i==8) {
+                    }
+                    else
+                    {
+                        if (i == 8)
+                        {
                             source = 0;
-                        } else {
-                            source = pgm_read_word_near(symbols + data[i/4] * 4 + i % 4 - (i>8 ? 1 : 0));
+                        }
+                        else
+                        {
+                            source = pgm_read_word_near(symbols + data[i / 4] * 4 + i % 4 - (i > 8 ? 1 : 0));
                         }
                     }
                 }
 
-                switch(transition) {
-                    case REPLACE:
-                        displayBuffer[i] = source;
-                        iteration = 0;
-                        break;
-                    case FADE:
-                        for(uint8_t p = random(8); displayBuffer[i] != source; p++) {
-                            if( (source ^ displayBuffer[i]) & bit(p % 8)) {
-                                displayBuffer[i] = (source & bit(p % 8)) ? displayBuffer[i] | bit(p % 8) : displayBuffer[i] & ~bit(p % 8);
-                                break;
-                            }
+                switch (transition)
+                {
+                case REPLACE:
+                    displayBuffer[i] = source;
+                    iteration = 0;
+                    break;
+                case FADE:
+                    for (uint8_t p = random(8); displayBuffer[i] != source; p++)
+                    {
+                        if ((source ^ displayBuffer[i]) & bit(p % 8))
+                        {
+                            displayBuffer[i] = (source & bit(p % 8)) ? displayBuffer[i] | bit(p % 8) : displayBuffer[i] & ~bit(p % 8);
+                            break;
                         }
-                        break;
-                    case SLIDE:
-                        if((i > 3 && i <8) || i > 11) {
-                            displayBuffer[i] = (displayBuffer[i] << 1) | (source >> iteration);
-                        } else {
-                            displayBuffer[i] = (displayBuffer[i] >> 1) | (source << iteration);
-                        }
-                        break;
-                    case SLIDE_DOWN:
-                        displayBuffer[i] = (displayBuffer[i] >> 1) | (source << iteration);
-                        break;
-                    case SLIDE_UP:
+                    }
+                    break;
+                case SLIDE:
+                    if ((i > 3 && i < 8) || i > 11)
+                    {
                         displayBuffer[i] = (displayBuffer[i] << 1) | (source >> iteration);
-                        break;
-                    case FALL:
-                        if(iteration > 24)
-                        {
-                            byte mask = (1 << ((iteration - 32) / 2 - (random((iteration-24) / 4) / ((iteration-24) / 4 - 1)))) - 1;
-                            byte moving = displayBuffer[i] & ~mask;
-                            moving = moving << 1;
-                            displayBuffer[i] = (displayBuffer[i] & mask) | moving;
-                        }
-                        if(iteration == 24)
-                        {
-                            orientation = turned;
-                        }
-                        if(iteration <= 24) {
+                    }
+                    else
+                    {
+                        displayBuffer[i] = (displayBuffer[i] >> 1) | (source << iteration);
+                    }
+                    break;
+                case SLIDE_DOWN:
+                    displayBuffer[i] = (displayBuffer[i] >> 1) | (source << iteration);
+                    break;
+                case SLIDE_UP:
+                    displayBuffer[i] = (displayBuffer[i] << 1) | (source >> iteration);
+                    break;
+                case FALL:
+                    if (iteration > 24)
+                    {
+                        byte mask = (1 << ((iteration - 32) / 2 - (random((iteration - 24) / 4) / ((iteration - 24) / 4 - 1)))) - 1;
+                        byte moving = displayBuffer[i] & ~mask;
+                        moving = moving << 1;
+                        displayBuffer[i] = (displayBuffer[i] & mask) | moving;
+                    }
+                    if (iteration == 24)
+                    {
+                        orientation = turned;
+                    }
+                    if (iteration <= 24)
+                    {
 
-                            for (byte j = 0; j < iteration; j++)
-                            {
-                                byte mask = 0xff >> (j / 3 + random((iteration) / 8 + 1));
-                                byte moving = source & ~mask;
-                                moving = moving << 1;
-                                source = (source & mask) | moving;
-                            }
-                            displayBuffer[i] = source << (iteration - 16);
+                        for (byte j = 0; j < iteration; j++)
+                        {
+                            byte mask = 0xff >> (j / 3 + random((iteration) / 8 + 1));
+                            byte moving = source & ~mask;
+                            moving = moving << 1;
+                            source = (source & mask) | moving;
                         }
-                        break;
+                        displayBuffer[i] = source << (iteration - 16);
+                    }
+                    break;
                 }
             }
             if ((transition != FALL || iteration == 0) && bit(i) & bar)
@@ -271,17 +291,19 @@ public:
         }
         matrix1.writeDisplay(orientation ? displayBuffer + 8 : displayBuffer, orientation);
         matrix2.writeDisplay(orientation ? displayBuffer : displayBuffer + 8, orientation);
-        for(uint8_t i=0; i < 16; i++) {
+        for (uint8_t i = 0; i < 16; i++)
+        {
             displayBuffer[i] = displayBuffer[i] & 0xfffe;
         }
-        if(orientation != turned && iteration == 0) {
+        if (orientation != turned && iteration == 0)
+        {
             orientation = turned;
         }
     }
 
 private:
     Chrono chrono;
-    byte data[4] = { BLANK, BLANK, BLANK, BLANK };
+    byte data[4] = {BLANK, BLANK, BLANK, BLANK};
     uint16_t mask;
     byte displayBuffer[16] = {0};
     boolean orientation = false;

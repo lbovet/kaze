@@ -4,7 +4,8 @@
 #include <Arduino.h>
 #include <Chrono.h>
 
-enum Event {
+enum Event
+{
     NOTHING = 0,
     INIT,
     TOUCH,
@@ -28,9 +29,10 @@ class EventBus
 public:
     void post(Event event, short delay = 0)
     {
-        if(event != NOTHING) {
+        if (event != NOTHING)
+        {
             state = state | bit(event);
-            if(delay)
+            if (delay)
             {
                 this->delay = delay;
                 chrono.restart();
@@ -38,11 +40,13 @@ public:
         }
     }
 
-    Event next() {
-        for(Event event = NOTHING; event <= LAST_EVENT; event = (Event)((int)event+1))
+    Event next()
+    {
+        for (Event event = NOTHING; event <= LAST_EVENT; event = (Event)((int)event + 1))
         {
-            if(state & bit(event)) {
-                if(event != DELAY || chrono.hasPassed(delay))
+            if (state & bit(event))
+            {
+                if (event != DELAY || chrono.hasPassed(delay))
                     return event;
             }
         }
@@ -53,6 +57,7 @@ public:
     {
         state = state & ~bit(event);
     }
+
 private:
     Chrono chrono;
     short delay;

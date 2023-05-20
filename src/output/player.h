@@ -4,16 +4,16 @@
 #include <Adafruit_VS1053.h>
 #include <SD.h>
 
-#define SHIELD_CS 7     // VS1053 chip select pin (output)
-#define SHIELD_DCS 6    // VS1053 Data/command select pin (output)
+#define SHIELD_CS 7  // VS1053 chip select pin (output)
+#define SHIELD_DCS 6 // VS1053 Data/command select pin (output)
 
 #define SHIELD_RESET -1 // unused
-#define CARDCS 4 // Card chip select pin
-#define DREQ 3 // VS1053 Data request, ideally an Interrupt pin
+#define CARDCS 4        // Card chip select pin
+#define DREQ 3          // VS1053 Data request, ideally an Interrupt pin
 
-class Player {
+class Player
+{
 public:
-
     void begin()
     {
         if (!musicPlayer.begin())
@@ -44,12 +44,12 @@ public:
         musicPlayer.stopPlaying();
     }
 
-    boolean playing() {
+    boolean playing()
+    {
         return musicPlayer.playingMusic;
     }
 
 private:
-
     /// File listing helper
     void printDirectory(File dir, int numTabs)
     {

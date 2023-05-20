@@ -18,7 +18,6 @@
 class Matrix
 {
 public:
-
     Matrix(uint8_t address)
     {
         i2c_dev = new Adafruit_I2CDevice(address);
@@ -60,7 +59,7 @@ public:
         i2c_dev->write(&buffer, 1);
     }
 
-    void writeDisplay(byte* displayBuffer, boolean rotation)
+    void writeDisplay(byte *displayBuffer, boolean rotation)
     {
         byte buffer[17];
         buffer[0] = 0x00;
@@ -70,7 +69,7 @@ public:
             byte line = displayBuffer[i];
             if (rotation)
             {
-                line = reverse(displayBuffer[7-i]);
+                line = reverse(displayBuffer[7 - i]);
             }
             buffer[1 + 2 * i] = (line >> 1) | (line << 7);
         }

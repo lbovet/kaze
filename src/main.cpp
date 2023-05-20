@@ -12,15 +12,18 @@
 #include "timer.h"
 #include "machine.h"
 
-EventBus bus;
 Display display;
 Player player;
 Time time;
-Timer timer(&display, &player, &time);
-Clock clock(&display, &time);
-StateMachine stateMachine(&bus, &clock, &timer);
+
 Touch touch;
 Orientation orientation;
+
+Timer timer(&display, &player, &time);
+Clock clock(&display, &time);
+
+EventBus bus;
+StateMachine stateMachine(&bus, &clock, &timer);
 
 Chrono longDelay, shortDelay;
 
