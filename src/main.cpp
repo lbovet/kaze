@@ -2,15 +2,15 @@
 #include <Chrono.h>
 
 #include "SD.h"
+#include "data/time.h"
 #include "output/display.h"
 #include "output/player.h"
 #include "input/touch.h"
-#include "input/time.h"
 #include "input/event.h"
 #include "input/orientation.h"
 #include "clock.h"
 #include "timer.h"
-#include "machine.h"
+#include "state.h"
 
 Display display;
 Player player;
@@ -46,13 +46,13 @@ void loop()
     bus.post(touch.update());
     if (orientation.update())
     {
-      bus.post(orientation.value() ? TURN_DOWN : TURN_UP);
+      bus.post(orientation.current() == BOTTOM ? TURN_DOWN : TURN_UP);
     }
   }
 
   if (longDelay.hasPassed(1000))
   {
-    // Serial.println(freeMemory());
+    //Serial.println(freeMemory());
     longDelay.restart();
     if (time.update())
     {

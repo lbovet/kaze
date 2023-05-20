@@ -1,10 +1,11 @@
-#ifndef MACHINE_H
-#define MACHINE_H
+#ifndef STATE_H
+#define STATE_H
 
 #include "input/event.h"
-#include "input/time.h"
+#include "data/time.h"
 #include "output/display.h"
 #include "output/player.h"
+#include "clock.h"
 #include "timer.h"
 
 enum State
@@ -13,6 +14,10 @@ enum State
     TIMER,
     WAIT
 };
+
+#define TIMEOUT if(event==TIME) { break; } else { timeout(8000); };
+#define NO_TOUCH if(event==TOUCH) { break; Serial.println("break"); };
+#define TURN_SKIP (event != TURN_DOWN && event != TURN_UP)
 
 class StateMachine
 {
@@ -41,19 +46,19 @@ public:
                 {
                 case INIT:
                     clock->show();
-                    wait(500);
+                    wait(800);
                     acknowledge(event);
                     break;
                 case TIME:
                     clock->update();
                     break;
                 case TURN_DOWN:
-                    clock->turn(true);
+                    clock->turn(BOTTOM);
                     wait(2000);
                     acknowledge(event);
                     break;
                 case TURN_UP:
-                    clock->turn(false);
+                    clock->turn(TOP);
                     wait(2000);
                     acknowledge(event);
                     break;
@@ -74,6 +79,7 @@ public:
                 }
                 break;
             case TIMER:
+                TIMEOUT
                 switch (event)
                 {
                 case INIT:
@@ -81,45 +87,49 @@ public:
                     acknowledge(event);
                     break;
                 case TAP:
-                    timer->close();
-                    set(CLOCK);
+                case DELAY:
+                    timer->close(true);
+                    set(CLOCK, TURN_SKIP);
                     break;
                 case SWIPE_UP:
-                    timer->change(true);
+                case SCROLL_UP:
+                    timer->change(UP);
                     break;
                 case SWIPE_DOWN:
-                    timer->change(false);
+                case SCROLL_DOWN:
+                    timer->change(DOWN);
                     break;
-                default:
+                default: NO_TOUCH
+                    timer->close(false);
+                    set(CLOCK, TURN_SKIP);
                     break;
                 }
+                break;
             default:
                 break;
             }
 
             switch (event)
             {
-            case DELAY:
-            case TIME:
-            case TOUCH:
-            case TAP:
-            case PRESS:
-            case SWIPE_UP:
-            case SWIPE_DOWN:
-            case SCROLL_UP:
-            case SCROLL_DOWN:
-                acknowledge(event);
+            case INIT:
+            case TURN_DOWN:
+            case TURN_UP:
+            case ALARM:
+                break; // requires explicit acknowledge
             default:
-                break; // explicit acknowledge
+                acknowledge(event); // swallow event in all cases
             }
         }
     }
 
 private:
-    void set(State state)
+    void set(State state, boolean init = true)
     {
         current = state;
-        bus->post(INIT);
+        if (init)
+        {
+            bus->post(INIT);
+        }
     }
 
     void push(State state)
@@ -147,6 +157,11 @@ private:
     {
         bus->post(DELAY, delay);
         push(WAIT);
+    }
+
+    void timeout(uint16_t delay)
+    {
+        bus->post(DELAY, delay);
     }
 
     State stacked;

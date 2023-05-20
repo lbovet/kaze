@@ -3,6 +3,12 @@
 
 #include <Arduino.h>
 
+enum Position
+{
+    TOP,
+    BOTTOM
+};
+
 class Orientation
 {
 public:
@@ -17,23 +23,23 @@ public:
         }
         else
         {
-            bool newValue = sensor > 0;
+            Position newValue = sensor < 0 ? TOP : BOTTOM;
             sensor = 0;
-            if (newValue != current)
+            if (newValue != value)
             {
-                current = newValue;
+                value = newValue;
                 return true;
             }
         }
         return false;
     }
-    boolean value()
+    Position current()
     {
-        return current;
+        return value;
     }
 
 private:
-    bool current = 0;
+    Position value = TOP;
     int16_t sensor;
 };
 

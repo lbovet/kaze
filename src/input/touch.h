@@ -7,7 +7,11 @@
 
 #include "event.h"
 
-#define PRESS_DELAY 1000
+#define PRESS_DELAY 1500
+#define TAP_DELAY 150
+#define SCROLL_DELAY 200
+
+#define sgn(x) (((x) < 0) ? -1 : ((x) > 0))
 
 class Touch
 {
@@ -18,7 +22,7 @@ public:
         {
             Serial.println("MPR121 not found, check wiring?");
         }
-        cap.setThresholds(0x10, 0x20);
+        cap.setThresholds(0x10, 0x10);
     }
 
     Event update()
@@ -28,16 +32,20 @@ public:
 
         if (current != last)
         {
+            int8_t newPosition = 0;
             if (last == 0)
             {
                 event = TOUCH;
+                scroll = false;
+                ref = current;
                 chrono.restart();
             }
             else
             {
+                newPosition = distance(ref, current);
                 if (current == 0)
                 {
-                    if (!hold && !chrono.hasPassed(PRESS_DELAY))
+                    if (!hold && chrono.hasPassed(TAP_DELAY))
                     {
                         event = TAP;
                     }
@@ -45,22 +53,36 @@ public:
                 }
                 else
                 {
-                    if (!hold)
+                    if (sgn(newPosition) != sgn(lastPosition))
                     {
+                        chrono.restart();
+                        scroll = false;
+                        event = newPosition > lastPosition ? SWIPE_UP : SWIPE_DOWN;
                         hold = true;
-                        event = current > last ? SWIPE_UP : SWIPE_DOWN;
                     }
                 }
             }
+            lastPosition = newPosition;
         }
         else
         {
             if (current)
             {
-                if (chrono.hasPassed(PRESS_DELAY) && !hold)
+                if (chrono.hasPassed(PRESS_DELAY))
                 {
-                    event = PRESS;
-                    hold = true;
+                    if (!hold && ref == current)
+                    {
+                        event = PRESS;
+                        hold = true;
+                    }
+                }
+                if (lastPosition && chrono.hasPassed(SCROLL_DELAY))
+                {
+                    if(scroll || chrono.hasPassed(PRESS_DELAY)) {
+                        scroll = true;
+                        chrono.restart();
+                        event = lastPosition > 0 ? SCROLL_UP : SCROLL_DOWN;
+                    }
                 }
             }
         }
@@ -70,10 +92,47 @@ public:
     }
 
 private:
+    int8_t distance(uint16_t ref, uint16_t value)
+    {
+        int8_t refStart = -1;
+        int8_t refEnd = -1;
+        int8_t valueStart = -1;
+        int8_t valueEnd = -1;
+
+        for (uint16_t i = 0; i < 16; i++)
+        {
+            if (bit(i) & ref)
+            {
+                refEnd = i;
+                if (refStart == 0xff)
+                    refStart = i;
+            }
+            if (bit(i) & value)
+            {
+                valueEnd = i;
+                if (valueStart == 0xff)
+                    valueStart = i;
+            }
+        }
+        int8_t lower = valueStart - refStart;
+        int8_t upper = valueEnd - refEnd;
+        if (abs(lower) == abs(upper))
+        {
+            return 0;
+        }
+        else
+        {
+            return abs(lower) > abs(upper) ? lower : upper;
+        }
+    }
+
     Chrono chrono;
+    uint16_t ref = 0;
     uint16_t last = 0;
     uint16_t current = 0;
-    boolean hold = 0;
+    boolean hold = false;
+    boolean scroll = false;
+    int8_t lastPosition = 0;
     Adafruit_MPR121 cap;
 };
 

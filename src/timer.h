@@ -2,7 +2,7 @@
 #define ACTION_H
 
 #include "input/event.h"
-#include "input/time.h"
+#include "data/time.h"
 #include "output/display.h"
 #include "output/player.h"
 
@@ -13,19 +13,36 @@ public:
 
     void open()
     {
-        display->show(HOURGLASS, time->minute(), true, FADE);
+        display->show(HOURGLASS, value ? value : minutes, false, FADE);
+        display->setBar(0,0);
     }
 
-    void close()
+    void close(boolean activate)
     {
+        if(activate) {
+            value = minutes;
+        } else {
+            value = 0;
+        }
     }
 
-    void change(boolean up)
+    uint8_t remaining()
     {
-        display->show(HOURGLASS, time->minute() + (up ? 1 : -1), true, up ? SLIDE_UP : SLIDE_DOWN);
+        return value;
+    }
+
+    void change(Direction up)
+    {
+        if(value) {
+            minutes = value;
+            value = 0;
+        }
+        display->show(HOURGLASS, minutes += (up ? 1 : -1), false, up ? SLIDE_UP : SLIDE_DOWN);
     }
 
 private:
+    uint8_t minutes = 15;
+    uint8_t value = 0;
     Display *display;
     Player *player;
     Time *time;

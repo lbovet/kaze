@@ -4,6 +4,7 @@
 #include <Chrono.h>
 
 #include "matrix.h"
+#include "input/orientation.h"
 
 #define BLANK 0xff
 #define DIRTY 0xfd
@@ -45,6 +46,7 @@ enum Transition
 {
     REPLACE,
     FADE,
+    DISSOLVE,
     SLIDE,
     SLIDE_DOWN,
     SLIDE_UP,
@@ -67,14 +69,10 @@ public:
         {
             if (this->transition == FALL)
             {
-                orientation = turned;
+                position = requested;
             }
             this->transition = REPLACE;
             update(true);
-            data[0] = DIRTY;
-            data[1] = DIRTY;
-            data[2] = DIRTY;
-            data[3] = DIRTY;
         }
 
         mask = 0;
@@ -95,16 +93,21 @@ public:
             data[3] = right == BLANK ? BLANK : right % 10;
         }
 
-        if (transition == FALL)
+        switch (transition)
         {
+        case FALL:
             mask = 0xffff;
             iteration = 48;
             interval = 30;
-        }
-        else
-        {
+            break;
+        case FADE:
+            mask = 0xffff;
+            iteration = 14;
+            interval = 40;
+            break;
+        default:
             iteration = 8;
-            interval = 60;
+            interval = 40;
         }
 
         this->transition = transition;
@@ -118,14 +121,10 @@ public:
         {
             if (this->transition == FALL)
             {
-                orientation = turned;
+                position = requested;
             }
             this->transition = REPLACE;
             update(true);
-            data[0] = DIRTY;
-            data[1] = DIRTY;
-            data[2] = DIRTY;
-            data[3] = DIRTY;
         }
 
         mask = 0;
@@ -150,14 +149,19 @@ public:
             data[3] = right == BLANK ? BLANK : right % 10;
         }
 
-        if (transition == FALL)
+        switch (transition)
         {
+        case FALL:
             mask = 0xffff;
             iteration = 48;
             interval = 30;
-        }
-        else
-        {
+            break;
+        case FADE:
+            mask = 0xffff;
+            iteration = 14;
+            interval = 40;
+            break;
+        default:
             iteration = 8;
             interval = 60;
         }
@@ -166,9 +170,9 @@ public:
         update();
     }
 
-    void setTurned(boolean value)
+    void setPosition(Position position)
     {
-        turned = value;
+        this->requested = position;
     }
 
     void setBar(byte markers, uint8_t progress = 0)
@@ -184,7 +188,7 @@ public:
 
     void update(boolean force = false)
     {
-        if (!chrono.hasPassed(interval) || iteration == 0)
+        if (!force && (!chrono.hasPassed(interval) || iteration == 0))
         {
             return;
         }
@@ -214,7 +218,7 @@ public:
                     }
                     else
                     {
-                        if (i == 8)
+                        if (i == 8 || i==12)
                         {
                             source = 0;
                         }
@@ -225,6 +229,7 @@ public:
                     }
                 }
 
+                uint8_t direction = random(2) ? 1 : -1;
                 switch (transition)
                 {
                 case REPLACE:
@@ -232,7 +237,28 @@ public:
                     iteration = 0;
                     break;
                 case FADE:
-                    for (uint8_t p = random(8); displayBuffer[i] != source; p++)
+                    if(iteration > 8) {
+                        for (uint8_t p = random(8); displayBuffer[i] != 0; p+=direction)
+                        {
+                            if ((displayBuffer[i]) & bit(p % 8))
+                            {
+                                displayBuffer[i] = displayBuffer[i] & ~bit(p % 8);
+                                break;
+                            }
+                        }
+                    } else {
+                        for (uint8_t p = random(8); displayBuffer[i] != source; p+=direction)
+                        {
+                            if ((source ^ displayBuffer[i]) & bit(p % 8))
+                            {
+                                displayBuffer[i] = (source & bit(p % 8)) ? displayBuffer[i] | bit(p % 8) : displayBuffer[i] & ~bit(p % 8);
+                                break;
+                            }
+                        }
+                    }
+                    break;
+                case DISSOLVE:
+                    for (uint8_t p = random(8); displayBuffer[i] != source; p+=direction)
                     {
                         if ((source ^ displayBuffer[i]) & bit(p % 8))
                         {
@@ -267,7 +293,7 @@ public:
                     }
                     if (iteration == 24)
                     {
-                        orientation = turned;
+                        position = requested;
                     }
                     if (iteration <= 24)
                     {
@@ -287,17 +313,19 @@ public:
             if ((transition != FALL || iteration == 0) && bit(i) & bar)
             {
                 displayBuffer[i] = displayBuffer[i] | 1;
+            } else {
+                displayBuffer[i] = displayBuffer[i] & ~1;
             }
         }
-        matrix1.writeDisplay(orientation ? displayBuffer + 8 : displayBuffer, orientation);
-        matrix2.writeDisplay(orientation ? displayBuffer : displayBuffer + 8, orientation);
+        matrix1.writeDisplay(position ? displayBuffer + 8 : displayBuffer, position);
+        matrix2.writeDisplay(position ? displayBuffer : displayBuffer + 8, position);
         for (uint8_t i = 0; i < 16; i++)
         {
             displayBuffer[i] = displayBuffer[i] & 0xfffe;
         }
-        if (orientation != turned && iteration == 0)
+        if (position != requested && iteration == 0)
         {
-            orientation = turned;
+            position = requested;
         }
     }
 
@@ -306,8 +334,8 @@ private:
     byte data[4] = {BLANK, BLANK, BLANK, BLANK};
     uint16_t mask;
     byte displayBuffer[16] = {0};
-    boolean orientation = false;
-    boolean turned = false;
+    Position position = TOP;
+    Position requested = TOP;
     uint8_t iteration = 0;
     Transition transition;
     uint8_t interval;

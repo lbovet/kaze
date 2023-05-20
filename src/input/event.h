@@ -8,18 +8,24 @@ enum Event
 {
     NOTHING = 0,
     INIT,
-    TOUCH,
     TAP,
     PRESS,
     SWIPE_UP,
     SWIPE_DOWN,
     SCROLL_UP,
     SCROLL_DOWN,
+    TOUCH,
     DELAY,
     TURN_UP,
     TURN_DOWN,
     TIME,
     ALARM
+};
+
+enum Direction
+{
+    DOWN,
+    UP
 };
 
 #define LAST_EVENT ALARM
