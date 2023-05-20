@@ -15,8 +15,23 @@ enum State
     WAIT
 };
 
-#define TIMEOUT if(event==TIME) { break; } else { timeout(8000); };
-#define NO_TOUCH if(event==TOUCH) { break; Serial.println("break"); };
+#define TIMEOUT        \
+    if (event == TIME) \
+    {                  \
+        break;         \
+    }                  \
+    else               \
+    {                  \
+        timeout(8000); \
+    }
+
+#define SKIP_TOUCH                 \
+    if (event == TOUCH)          \
+    {                            \
+        break;                   \
+        Serial.println("break"); \
+    }
+
 #define TURN_SKIP (event != TURN_DOWN && event != TURN_UP)
 
 class StateMachine
@@ -51,6 +66,7 @@ public:
                     break;
                 case TIME:
                     clock->update();
+                    timer->progress();
                     break;
                 case TURN_DOWN:
                     clock->turn(BOTTOM);
@@ -88,7 +104,7 @@ public:
                     break;
                 case TAP:
                 case DELAY:
-                    timer->close(true);
+                    timer->activate();
                     set(CLOCK, TURN_SKIP);
                     break;
                 case SWIPE_UP:
@@ -99,8 +115,9 @@ public:
                 case SCROLL_DOWN:
                     timer->change(DOWN);
                     break;
-                default: NO_TOUCH
-                    timer->close(false);
+                default:
+                    SKIP_TOUCH
+                    timer->discard();
                     set(CLOCK, TURN_SKIP);
                     break;
                 }

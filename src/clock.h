@@ -12,7 +12,6 @@ public:
 
     void show()
     {
-        updateBar();
         display->show(time->hour(), time->minute(), FADE);
     }
 
@@ -20,7 +19,6 @@ public:
     {
         this->position = position;
         display->setPosition(position);
-        updateBar();
         display->show(time->hour(), time->minute(), FALL);
     }
 
@@ -30,17 +28,6 @@ public:
     }
 
 private:
-    void updateBar()
-    {
-        if (position == BOTTOM)
-        {
-            display->setBar(0x02 | 0x20, 8 - ((short)(time->second() * 8) / 60));
-        }
-        else
-        {
-            display->setBar(0, 0);
-        }
-    }
     Position position;
     Display *display;
     Time *time;

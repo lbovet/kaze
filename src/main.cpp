@@ -19,7 +19,7 @@ Time time;
 Touch touch;
 Orientation orientation;
 
-Timer timer(&display, &player, &time);
+Timer timer(&display, &player);
 Clock clock(&display, &time);
 
 EventBus bus;
@@ -57,6 +57,10 @@ void loop()
     if (time.update())
     {
       bus.post(TIME);
+    }
+    if (timer.update())
+    {
+      bus.post(ALARM);
     }
   }
 

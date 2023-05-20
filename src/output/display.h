@@ -175,9 +175,14 @@ public:
         this->requested = position;
     }
 
-    void setBar(byte markers, uint8_t progress = 0)
+    void setMarkers(byte markers)
     {
-        this->bar = markers | (0xff << (16 - progress));
+        bar = (bar & 0xff00) | markers;
+    }
+
+    void setProgress(uint8_t progress)
+    {
+        this->bar = (bar & 0x00ff) | progress ? (0x1 << (16 - progress)) : 0;
     }
 
     void setBrightness(uint8_t brightness)
