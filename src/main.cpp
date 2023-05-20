@@ -11,6 +11,7 @@
 #include "clock.h"
 #include "timer.h"
 #include "state.h"
+#include "menu.h"
 
 Display display;
 Player player;
@@ -22,8 +23,10 @@ Orientation orientation;
 Timer timer(&display, &player);
 Clock clock(&display, &time);
 
+Menu menu(&display);
+
 EventBus bus;
-StateMachine stateMachine(&bus, &clock, &timer);
+StateMachine stateMachine(&bus, &clock, &timer, &menu);
 
 Chrono longDelay, shortDelay;
 

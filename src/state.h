@@ -7,11 +7,16 @@
 #include "output/player.h"
 #include "clock.h"
 #include "timer.h"
+#include "menu.h"
 
 enum State
 {
     CLOCK,
+    ALARM_1,
+    ALARM_2,
     TIMER,
+    TIME_SET,
+    MENU,
     WAIT
 };
 
@@ -25,10 +30,16 @@ enum State
         timeout(8000); \
     }
 
-#define SKIP_TOUCH                 \
-    if (event == TOUCH)          \
-    {                            \
-        break;                   \
+#define SKIP_TOUCH      \
+    if (event == TOUCH) \
+    {                   \
+        break;          \
+    }
+
+#define SKIP_SCROLL                                 \
+    if (event == SCROLL_UP || event == SCROLL_DOWN) \
+    {                                               \
+        break;                                      \
     }
 
 #define TURN_SKIP (event != TURN_DOWN && event != TURN_UP)
@@ -36,7 +47,7 @@ enum State
 class StateMachine
 {
 public:
-    StateMachine(EventBus *bus, Clock *clock, Timer *timer) : bus(bus), clock(clock), timer(timer)
+    StateMachine(EventBus *bus, Clock *clock, Timer *timer, Menu *menu) : bus(bus), clock(clock), timer(timer), menu(menu)
     {
         set(CLOCK);
     }
@@ -55,6 +66,9 @@ public:
             }
             switch (state())
             {
+            case ALARM_1:
+            case ALARM_2:
+            case TIME_SET:
             case CLOCK:
                 switch (event)
                 {
@@ -78,7 +92,7 @@ public:
                     acknowledge(event);
                     break;
                 case TAP:
-                    set(TIMER);
+                    set(MENU);
                 default:
                     break;
                 }
@@ -119,6 +133,29 @@ public:
                     timer->discard();
                     set(CLOCK, TURN_SKIP);
                     break;
+                }
+                break;
+            case MENU:
+                TIMEOUT
+                switch (event)
+                {
+                case INIT:
+                    menu->open();
+                    acknowledge(event);
+                    break;
+                case SWIPE_UP:
+                    menu->up();
+                    break;
+                case SWIPE_DOWN:
+                    menu->down();
+                    break;
+                case TAP:
+                    set((State)menu->select(TIME_SET, TIMER, ALARM_1, ALARM_2, CLOCK));
+                    break;
+                default:
+                    SKIP_TOUCH
+                    SKIP_SCROLL
+                    set(CLOCK, TURN_SKIP);
                 }
                 break;
             default:
@@ -186,6 +223,8 @@ private:
     EventBus *bus;
     Clock *clock;
     Timer *timer;
+
+    Menu *menu;
 };
 
 #endif

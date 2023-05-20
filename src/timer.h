@@ -12,8 +12,7 @@ public:
 
     void open()
     {
-        display->show(HOURGLASS, active ? value() : minutes, false, FADE);
-        active = false;
+        display->show(HOURGLASS, active ? value() : minutes, false, DISSOLVE);
     }
 
     void activate()
@@ -54,8 +53,8 @@ public:
     {
         if(active) {
             minutes = value();
-            active = false;
         }
+        active = false;
         display->show(HOURGLASS, minutes += (up ? 1 : -1), false, up ? SLIDE_UP : SLIDE_DOWN);
     }
 

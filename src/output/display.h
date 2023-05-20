@@ -82,7 +82,7 @@ public:
             data[1] = symbol;
             mask |= 0x00ff;
         }
-        if (data[2] != right / 10)
+        if (data[2] != right / 10 || (right < 10 && !pad))
         {
             mask |= 0x0f00;
             data[2] = right == BLANK ? BLANK : (right < 10 && !pad ? BLANK : right / 10);
