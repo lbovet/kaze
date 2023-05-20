@@ -29,7 +29,6 @@ enum State
     if (event == TOUCH)          \
     {                            \
         break;                   \
-        Serial.println("break"); \
     }
 
 #define TURN_SKIP (event != TURN_DOWN && event != TURN_UP)

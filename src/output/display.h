@@ -182,7 +182,7 @@ public:
 
     void setProgress(uint8_t progress)
     {
-        this->bar = (bar & 0x00ff) | progress ? (0x1 << (16 - progress)) : 0;
+        this->bar = (bar & 0x00ff) | progress ? bit(16 - progress) : 0;
     }
 
     void setBrightness(uint8_t brightness)

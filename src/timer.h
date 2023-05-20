@@ -18,8 +18,10 @@ public:
 
     void activate()
     {
+        if(!active) {
+            chrono.restart();
+        }
         active = true;
-        chrono.restart();
     }
 
     void discard()
@@ -29,13 +31,8 @@ public:
 
     boolean update()
     {
-        Serial.println(active);
-        Serial.println(chrono.elapsed() / 1000);
-        Serial.println(minutes * 60);
-
         if(active && chrono.elapsed() / 1000 > minutes * 60)
         {
-            Serial.println("ALARM");
             active = false;
             return true;
         } else {
@@ -47,7 +44,6 @@ public:
         if(active) {
             unsigned long elapsed = chrono.elapsed() / 1000;
             unsigned long ratio = 7 * (minutes * 60 - elapsed) / (minutes * 60) + 1;
-            Serial.println(ratio);
             display->setProgress(max(0, ratio));
         } else {
             display->setProgress(0);
@@ -58,6 +54,7 @@ public:
     {
         if(active) {
             minutes = value();
+            active = false;
         }
         display->show(HOURGLASS, minutes += (up ? 1 : -1), false, up ? SLIDE_UP : SLIDE_DOWN);
     }
