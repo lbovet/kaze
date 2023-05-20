@@ -49,7 +49,7 @@ public:
         return NOTHING;
     }
 
-    void acknowledge(Event event)
+    void clear(Event event)
     {
         state = state & ~bit(event);
     }

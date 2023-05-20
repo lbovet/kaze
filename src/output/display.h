@@ -25,7 +25,7 @@ const byte symbols[] PROGMEM = {
 
 enum Symbol
 {
-    CLOCK = 5,
+    WALL_CLOCK = 5,
     BELL = 6,
     HOURGLASS = 7,
     MUSIC = 8,

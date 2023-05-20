@@ -8,13 +8,17 @@
 #include "input/time.h"
 #include "input/event.h"
 #include "input/orientation.h"
-#include "state.h"
+#include "clock.h"
+#include "timer.h"
+#include "machine.h"
 
 EventBus bus;
 Display display;
 Player player;
 Time time;
-StateMachine stateMachine(&bus, &display, &player, &time);
+Timer timer(&display, &player, &time);
+Clock clock(&display, &time);
+StateMachine stateMachine(&bus, &clock, &timer);
 Touch touch;
 Orientation orientation;
 
@@ -28,7 +32,6 @@ void setup()
   display.begin();
   player.begin();
   touch.begin();
-  bus.post(INIT);
   delay(100);
 }
 
@@ -46,7 +49,7 @@ void loop()
 
   if (longDelay.hasPassed(1000))
   {
-    //Serial.println(freeMemory());
+    // Serial.println(freeMemory());
     longDelay.restart();
     if (time.update())
     {
