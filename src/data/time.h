@@ -71,6 +71,20 @@ public:
         rtc.refresh();
     }
 
+    boolean checkAlarm() {
+        if (rtc.alarmTriggered(URTCLIB_ALARM_1))
+        {
+            rtc.alarmClearFlag(URTCLIB_ALARM_1);
+            return true;
+        }
+        if (rtc.alarmTriggered(URTCLIB_ALARM_2))
+        {
+            rtc.alarmClearFlag(URTCLIB_ALARM_2);
+            return true;
+        }
+        return false;
+    }
+
 private:
     uint8_t last = 255;
     uRTCLib rtc;
