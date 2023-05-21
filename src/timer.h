@@ -12,50 +12,82 @@ public:
 
     void open()
     {
-        display->show(HOURGLASS, active ? value() : minutes, false, DISSOLVE);
+        display->show(HOURGLASS, running ? value() : minutes, false, DISSOLVE);
     }
 
     void activate()
     {
-        if(!active) {
+        if (!running)
+        {
             chrono.restart();
         }
-        active = true;
+        running = true;
     }
 
-    void discard()
+    void disable()
     {
-        active = false;
+        running = false;
+        hide();
     }
 
     boolean update()
     {
-        if(active && chrono.elapsed() / 1000 > minutes * 60)
+        if (running && chrono.elapsed() / 1000 > minutes * 60)
         {
-            active = false;
+            running = false;
             return true;
-        } else {
+        }
+        else
+        {
             return false;
         }
     }
 
-    void progress() {
-        if(active) {
+    boolean active()
+    {
+        return running;
+    }
+
+    void progress()
+    {
+        if (running)
+        {
             unsigned long elapsed = chrono.elapsed() / 1000;
             unsigned long ratio = 7 * (minutes * 60 - elapsed) / (minutes * 60) + 1;
             display->setProgress(max(0, ratio));
-        } else {
+        }
+        else
+        {
             display->setProgress(0);
         }
     }
 
-    void change(Direction up)
+    void hide()
     {
-        if(active) {
+        Serial.println("hide");
+        display->setProgress(0);
+    }
+
+    void up()
+    {
+        if (running)
+        {
             minutes = value();
         }
-        active = false;
-        display->show(HOURGLASS, minutes += (up ? 1 : -1), false, up ? SLIDE_UP : SLIDE_DOWN);
+        running = false;
+        if(minutes < 59)
+            display->show(HOURGLASS, ++minutes, false, SLIDE_UP);
+    }
+
+    void down()
+    {
+        if (running)
+        {
+            minutes = value();
+        }
+        running = false;
+        if(minutes > 1)
+            display->show(HOURGLASS, --minutes, false, SLIDE_DOWN);
     }
 
 private:
@@ -66,12 +98,13 @@ private:
         {
             return 0;
         }
-        else {
+        else
+        {
             return minutes - (elapsed / 60);
         }
     }
     Chrono chrono;
-    boolean active;
+    boolean running;
     uint8_t minutes = 15;
     Display *display;
     Player *player;

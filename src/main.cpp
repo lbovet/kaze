@@ -23,7 +23,7 @@ Orientation orientation;
 Timer timer(&display, &player);
 Clock clock(&display, &time);
 
-Menu menu(&display);
+Menu menu(&display, &timer, &player);
 
 EventBus bus;
 StateMachine stateMachine(&bus, &clock, &timer, &menu);

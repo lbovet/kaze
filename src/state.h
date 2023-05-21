@@ -74,7 +74,7 @@ public:
                 {
                 case INIT:
                     clock->show();
-                    wait(800);
+                    timer->progress();
                     acknowledge(event);
                     break;
                 case TIME:
@@ -92,7 +92,12 @@ public:
                     acknowledge(event);
                     break;
                 case TAP:
+                    timer->hide();
                     set(MENU);
+                case ALARM:
+                    Serial.println("ALARM!");
+                    acknowledge(event);
+                    break;
                 default:
                     break;
                 }
@@ -122,15 +127,15 @@ public:
                     break;
                 case SWIPE_UP:
                 case SCROLL_UP:
-                    timer->change(UP);
+                    timer->up();
                     break;
                 case SWIPE_DOWN:
                 case SCROLL_DOWN:
-                    timer->change(DOWN);
+                    timer->down();
                     break;
                 default:
                     SKIP_TOUCH
-                    timer->discard();
+                    timer->disable();
                     set(CLOCK, TURN_SKIP);
                     break;
                 }
@@ -151,6 +156,10 @@ public:
                     break;
                 case TAP:
                     set((State)menu->select(TIME_SET, TIMER, ALARM_1, ALARM_2, CLOCK));
+                    break;
+                case PRESS:
+                    if(menu->disable())
+                        set(CLOCK);
                     break;
                 default:
                     SKIP_TOUCH

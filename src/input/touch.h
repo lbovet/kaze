@@ -8,7 +8,7 @@
 #include "event.h"
 
 #define PRESS_DELAY 1500
-#define TAP_DELAY 150
+#define TAP_DELAY 50
 #define SCROLL_DELAY 200
 
 #define sgn(x) (((x) < 0) ? -1 : ((x) > 0))

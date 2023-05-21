@@ -2,17 +2,28 @@
 #define MENU_H
 
 #include "output/display.h"
+#include "output/player.h"
 #include "input/orientation.h"
+#include "timer.h"
 
 class Menu
 {
 public:
-    Menu(Display *display) : display(display) {}
+    Menu(Display *display, Timer *timer, Player *player) : display(display), timer(timer), player(player) {}
 
     void open()
     {
-        symbol = BELL;
-        alarm = 1;
+        if (timer->active())
+        {
+            symbol = HOURGLASS;
+            alarm = 0;
+            timer->progress();
+        }
+        else
+        {
+            symbol = BELL;
+            alarm = 1;
+        }
         display->show(symbol, alarm ? alarm : BLANK, false, FADE);
     }
 
@@ -35,11 +46,13 @@ public:
             {
                 symbol = HOURGLASS;
                 alarm = 0;
+                timer->progress();
             }
             else
                 alarm++;
             break;
         case HOURGLASS:
+            timer->hide();
             symbol = WALL_CLOCK;
             break;
         case WALL_CLOCK:
@@ -57,8 +70,10 @@ public:
         {
         case WALL_CLOCK:
             symbol = HOURGLASS;
+            timer->progress();
             break;
         case HOURGLASS:
+            timer->hide();
             symbol = BELL;
             alarm = 2;
             break;
@@ -105,10 +120,24 @@ public:
         }
     }
 
+    boolean disable()
+    {
+        switch (symbol)
+        {
+        case HOURGLASS:
+            timer->disable();
+            return true;
+        default:
+            return false;
+        }
+    }
+
 private:
     Symbol symbol = BELL;
     uint8_t alarm = 0;
     Display *display;
+    Timer *timer;
+    Player *player;
 };
 
 #endif
