@@ -136,4 +136,6 @@ private:
     Adafruit_MPR121 cap;
 };
 
+Touch touch;
+
 #endif

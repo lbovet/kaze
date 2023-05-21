@@ -8,11 +8,9 @@
 class Timer
 {
 public:
-    Timer(Display *display, Player *player) : display(display), player(player) {}
-
     void open()
     {
-        display->show(HOURGLASS, running ? value() : minutes, false, DISSOLVE);
+        display.show(HOURGLASS, running ? value() : minutes, false, DISSOLVE);
     }
 
     void activate()
@@ -54,17 +52,17 @@ public:
         {
             unsigned long elapsed = chrono.elapsed() / 1000;
             unsigned long ratio = 7 * (minutes * 60 - elapsed) / (minutes * 60) + 1;
-            display->setProgress(max(0, ratio));
+            display.setProgress(max(0, ratio));
         }
         else
         {
-            display->setProgress(0);
+            display.setProgress(0);
         }
     }
 
     void hide()
     {
-        display->setProgress(0);
+        display.setProgress(0);
     }
 
     void up()
@@ -75,7 +73,7 @@ public:
         }
         running = false;
         if(minutes < 59)
-            display->show(HOURGLASS, ++minutes, false, SLIDE_UP);
+            display.show(HOURGLASS, ++minutes, false, SLIDE_UP);
     }
 
     void down()
@@ -86,7 +84,7 @@ public:
         }
         running = false;
         if(minutes > 1)
-            display->show(HOURGLASS, --minutes, false, SLIDE_DOWN);
+            display.show(HOURGLASS, --minutes, false, SLIDE_DOWN);
     }
 
 private:
@@ -105,8 +103,8 @@ private:
     Chrono chrono;
     boolean running;
     uint8_t minutes = 15;
-    Display *display;
-    Player *player;
 };
+
+Timer timer;
 
 #endif

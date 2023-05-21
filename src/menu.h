@@ -10,25 +10,24 @@
 class Menu
 {
 public:
-    Menu(Display *display, Timer *timer, Clock *clock, Player *player) : display(display), timer(timer), clock(clock), player(player) {}
 
     void open()
     {
-        if (timer->active())
+        if (timer.active())
         {
             symbol = HOURGLASS;
             alarm = 0;
-            timer->progress();
+            timer.progress();
         }
         else
         {
             symbol = BELL;
-            if(clock->alarms() & 1)
+            if(clock.alarms() & 1)
                 alarm = 1;
             else
                 alarm = 2;
         }
-        display->show(symbol, alarm ? alarm : BLANK, false, FADE);
+        display.show(symbol, alarm ? alarm : BLANK, false, FADE);
     }
 
     void up()
@@ -50,13 +49,13 @@ public:
             {
                 symbol = HOURGLASS;
                 alarm = 0;
-                timer->progress();
+                timer.progress();
             }
             else
                 alarm++;
             break;
         case HOURGLASS:
-            timer->hide();
+            timer.hide();
             symbol = WALL_CLOCK;
             break;
         case WALL_CLOCK:
@@ -65,7 +64,7 @@ public:
         default:
             break;
         }
-        display->show(symbol, alarm ? alarm : BLANK, false, SLIDE_UP);
+        display.show(symbol, alarm ? alarm : BLANK, false, SLIDE_UP);
     }
 
     void down()
@@ -74,10 +73,10 @@ public:
         {
         case WALL_CLOCK:
             symbol = HOURGLASS;
-            timer->progress();
+            timer.progress();
             break;
         case HOURGLASS:
-            timer->hide();
+            timer.hide();
             symbol = BELL;
             alarm = 2;
             break;
@@ -102,7 +101,7 @@ public:
         default:
             break;
         }
-        display->show(symbol, alarm ? alarm : BLANK, false, SLIDE_DOWN);
+        display.show(symbol, alarm ? alarm : BLANK, false, SLIDE_DOWN);
     }
 
     uint8_t
@@ -111,10 +110,10 @@ public:
         switch (symbol)
         {
         case BELL:
-            clock->setAlarm(alarm);
+            clock.setAlarm(alarm);
             return timeSet;
         case WALL_CLOCK:
-            clock->setClock();
+            clock.setClock();
             return timeSet;
         case HOURGLASS:
             return timer;
@@ -128,10 +127,10 @@ public:
         switch (symbol)
         {
         case HOURGLASS:
-            timer->disable();
+            timer.disable();
             return true;
         case BELL:
-            clock->disable(alarm);
+            clock.disable(alarm);
             return true;
         default:
             return false;
@@ -141,10 +140,8 @@ public:
 private:
     Symbol symbol = BELL;
     uint8_t alarm = 0;
-    Display *display;
-    Timer *timer;
-    Clock *clock;
-    Player *player;
 };
+
+Menu menu;
 
 #endif

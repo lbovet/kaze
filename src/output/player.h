@@ -83,4 +83,6 @@ private:
         Adafruit_VS1053_FilePlayer(SHIELD_RESET, SHIELD_CS, SHIELD_DCS, DREQ, CARDCS);
 };
 
+Player player;
+
 #endif

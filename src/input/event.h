@@ -70,4 +70,6 @@ private:
     uint16_t state = 0;
 };
 
+EventBus bus;
+
 #endif

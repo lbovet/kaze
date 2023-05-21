@@ -365,4 +365,6 @@ private:
     Matrix matrix2 = Matrix(0x71);
 };
 
+Display display;
+
 #endif

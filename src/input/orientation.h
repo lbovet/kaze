@@ -43,4 +43,6 @@ private:
     int16_t sensor;
 };
 
+Orientation orientation;
+
 #endif

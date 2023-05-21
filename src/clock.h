@@ -16,45 +16,44 @@ enum ClockMode
 class Clock
 {
 public:
-    Clock(Display *display, Time *time, Orientation *orientation) : display(display), time(time), orientation(orientation) {}
 
     void show()
     {
         mode = SHOW_CLOCK;
         if(position == TOP)
-            display->setMarkers(alarmBits);
+            display.setMarkers(alarmBits);
         else
-            display->setMarkers(0);
-        display->show(time->hour(), time->minute(), FADE);
+            display.setMarkers(0);
+        display.show(time.hour(), time.minute(), FADE);
     }
 
     void turn(Position position)
     {
         this->position = position;
-        display->setPosition(position);
+        display.setPosition(position);
         if (position == TOP)
-            display->setMarkers(alarmBits);
+            display.setMarkers(alarmBits);
         else
-            display->setMarkers(0);
-        display->show(time->hour(), time->minute(), FALL);
+            display.setMarkers(0);
+        display.show(time.hour(), time.minute(), FALL);
     }
 
     void update()
     {
-        display->show(time->hour(), time->minute(), SLIDE);
+        display.show(time.hour(), time.minute(), SLIDE);
     }
 
     void setClock()
     {
-        hour = time->hour();
-        minute = time->minute();
+        hour = time.hour();
+        minute = time.minute();
         mode = SET_CLOCK;
     }
 
     void setAlarm(uint8_t alarm)
     {
-        hour = time->hour(alarm);
-        minute = time->minute(alarm);
+        hour = time.hour(alarm);
+        minute = time.minute(alarm);
         if (alarm == 1)
             mode = SET_ALARM_1;
         else
@@ -64,8 +63,8 @@ public:
     void edit()
     {
         editHour = true;
-        display->show(hour, minute, FADE);
-        display->blinkLeft();
+        display.show(hour, minute, FADE);
+        display.blinkLeft();
     }
 
     void up()
@@ -84,7 +83,7 @@ public:
                 minute++;
             }
         }
-        display->show(hour, minute, SLIDE_UP);
+        display.show(hour, minute, SLIDE_UP);
     }
 
     void down()
@@ -103,14 +102,14 @@ public:
                 minute--;
             }
         }
-        display->show(hour, minute, SLIDE_DOWN);
+        display.show(hour, minute, SLIDE_DOWN);
     }
 
     boolean next()
     {
         if (editHour)
         {
-            display->blinkRight();
+            display.blinkRight();
             editHour = false;
             return true;
         }
@@ -134,7 +133,7 @@ public:
         default:
             break;
         }
-        Serial.println("commit");
+        Serial.println(F("commit"));
     }
 
     void disable(uint8_t alarm)
@@ -158,7 +157,7 @@ public:
         default:
             break;
         }
-        Serial.println("discard");
+        Serial.println(F("discard"));
     }
 
     byte alarms()
@@ -168,7 +167,7 @@ public:
 
     void hideAlarms()
     {
-        display->setMarkers(0);
+        display.setMarkers(0);
     }
 
 private:
@@ -178,9 +177,8 @@ private:
     uint8_t hour;
     uint8_t minute;
     Position position;
-    Display *display;
-    Time *time;
-    Orientation *orientation;
 };
+
+Clock clock;
 
 #endif

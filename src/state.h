@@ -46,21 +46,21 @@ enum State
 class StateMachine
 {
 public:
-    StateMachine(EventBus *bus, Clock *clock, Timer *timer, Menu *menu) : bus(bus), clock(clock), timer(timer), menu(menu)
+    StateMachine()
     {
         set(CLOCK);
     }
 
     void update()
     {
-        Event event = bus->next();
+        Event event = bus.next();
         if (event)
         {
             if (event != TIME)
             {
-                Serial.print("event ");
+                Serial.print(F("event "));
                 Serial.print(event);
-                Serial.print(" state ");
+                Serial.print(F(" state "));
                 Serial.println(state());
             }
             switch (state())
@@ -69,31 +69,31 @@ public:
                 switch (event)
                 {
                 case INIT:
-                    clock->show();
-                    timer->progress();
+                    clock.show();
+                    timer.progress();
                     acknowledge(event);
                     break;
                 case TIME:
-                    clock->update();
-                    timer->progress();
+                    clock.update();
+                    timer.progress();
                     break;
                 case TURN_DOWN:
-                    clock->turn(BOTTOM);
-                    timer->disable();
+                    clock.turn(BOTTOM);
+                    timer.disable();
                     wait(2000);
                     acknowledge(event);
                     break;
                 case TURN_UP:
-                    clock->turn(TOP);
+                    clock.turn(TOP);
                     wait(2000);
                     acknowledge(event);
                     break;
                 case TAP:
-                    timer->hide();
-                    clock->hideAlarms();
+                    timer.hide();
+                    clock.hideAlarms();
                     set(MENU);
                 case ALARM:
-                    Serial.println("ALARM!");
+                    Serial.println(F("ALARM!"));
                     acknowledge(event);
                     break;
                 default:
@@ -115,28 +115,28 @@ public:
                 switch (event)
                 {
                 case INIT:
-                    clock->edit();
+                    clock.edit();
                     acknowledge(event);
                     break;
                 case TAP:
-                    if(!clock->next())
+                    if(!clock.next())
                         set(CLOCK);
                     break;
                 case PRESS:
-                    clock->discard();
+                    clock.discard();
                     set(CLOCK);
                     break;
                 case SWIPE_UP:
                 case SCROLL_UP:
-                    clock->up();
+                    clock.up();
                     break;
                 case SWIPE_DOWN:
                 case SCROLL_DOWN:
-                    clock->down();
+                    clock.down();
                     break;
                 default:
                     SKIP_TOUCH
-                    clock->commit();
+                    clock.commit();
                     set(CLOCK, TURN_SKIP);
                     break;
                 }
@@ -146,25 +146,25 @@ public:
                 switch (event)
                 {
                 case INIT:
-                    timer->open();
+                    timer.open();
                     acknowledge(event);
                     break;
                 case TAP:
                 case DELAY:
-                    timer->activate();
+                    timer.activate();
                     set(CLOCK);
                     break;
                 case SWIPE_UP:
                 case SCROLL_UP:
-                    timer->up();
+                    timer.up();
                     break;
                 case SWIPE_DOWN:
                 case SCROLL_DOWN:
-                    timer->down();
+                    timer.down();
                     break;
                 default:
                     SKIP_TOUCH
-                    timer->disable();
+                    timer.disable();
                     set(CLOCK, TURN_SKIP);
                     break;
                 }
@@ -174,20 +174,20 @@ public:
                 switch (event)
                 {
                 case INIT:
-                    menu->open();
+                    menu.open();
                     acknowledge(event);
                     break;
                 case SWIPE_UP:
-                    menu->up();
+                    menu.up();
                     break;
                 case SWIPE_DOWN:
-                    menu->down();
+                    menu.down();
                     break;
                 case TAP:
-                    set((State)menu->select(TIME_SET, TIMER, CLOCK));
+                    set((State)menu.select(TIME_SET, TIMER, CLOCK));
                     break;
                 case PRESS:
-                    if(menu->disable())
+                    if(menu.disable())
                         set(CLOCK);
                     break;
                 default:
@@ -219,7 +219,7 @@ private:
         current = state;
         if (init)
         {
-            bus->post(INIT);
+            bus.post(INIT);
         }
     }
 
@@ -241,28 +241,24 @@ private:
 
     void acknowledge(Event event)
     {
-        bus->clear(event);
+        bus.clear(event);
     }
 
     void wait(uint16_t delay)
     {
-        bus->post(DELAY, delay);
+        bus.post(DELAY, delay);
         push(WAIT);
     }
 
     void timeout(uint16_t delay)
     {
-        bus->post(DELAY, delay);
+        bus.post(DELAY, delay);
     }
 
     State stacked;
     State current;
-
-    EventBus *bus;
-    Clock *clock;
-    Timer *timer;
-
-    Menu *menu;
 };
+
+StateMachine stateMachine;
 
 #endif

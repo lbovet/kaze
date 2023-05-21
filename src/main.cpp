@@ -13,21 +13,6 @@
 #include "state.h"
 #include "menu.h"
 
-Display display;
-Player player;
-Time time;
-
-Touch touch;
-Orientation orientation;
-
-Timer timer(&display, &player);
-Clock clock(&display, &time, &orientation);
-
-Menu menu(&display, &timer, &clock, &player);
-
-EventBus bus;
-StateMachine stateMachine(&bus, &clock, &timer, &menu);
-
 Chrono longDelay, shortDelay;
 
 void setup()
@@ -39,6 +24,8 @@ void setup()
   player.begin();
   touch.begin();
   delay(100);
+  Serial.println(F("Free memory: "));
+  Serial.print(freeMemory());
 }
 
 void loop()
@@ -55,7 +42,6 @@ void loop()
 
   if (longDelay.hasPassed(1000))
   {
-    //Serial.println(freeMemory());
     longDelay.restart();
     if (time.update())
     {

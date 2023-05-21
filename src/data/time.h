@@ -58,4 +58,6 @@ private:
     uRTCLib rtc;
 };
 
+Time time;
+
 #endif
