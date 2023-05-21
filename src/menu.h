@@ -122,18 +122,18 @@ public:
         }
     }
 
-    boolean disable()
+    void disable()
     {
         switch (symbol)
         {
         case HOURGLASS:
             timer.disable();
-            return true;
+            break;
         case BELL:
             clock.disable(alarm);
-            return true;
+            break;
         default:
-            return false;
+            break;
         }
     }
 

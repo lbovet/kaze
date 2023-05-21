@@ -70,6 +70,7 @@ public:
                 {
                 case INIT:
                     clock.show();
+                    wait(800);
                     timer.progress();
                     acknowledge(event);
                     break;
@@ -92,6 +93,7 @@ public:
                     timer.hide();
                     clock.hideAlarms();
                     set(MENU);
+                    break;
                 case ALARM:
                     Serial.println(F("ALARM!"));
                     acknowledge(event);
@@ -124,7 +126,7 @@ public:
                     break;
                 case PRESS:
                     clock.discard();
-                    set(CLOCK);
+                    back();
                     break;
                 case SWIPE_UP:
                 case SCROLL_UP:
@@ -162,6 +164,9 @@ public:
                 case SCROLL_DOWN:
                     timer.down();
                     break;
+                case PRESS:
+                    back();
+                    break;
                 default:
                     SKIP_TOUCH
                     timer.disable();
@@ -187,8 +192,8 @@ public:
                     set((State)menu.select(TIME_SET, TIMER, CLOCK));
                     break;
                 case PRESS:
-                    if(menu.disable())
-                        set(CLOCK);
+                    menu.disable();
+                    back();
                     break;
                 default:
                     SKIP_TOUCH
@@ -253,6 +258,13 @@ private:
     void timeout(uint16_t delay)
     {
         bus.post(DELAY, delay);
+    }
+
+    void back()
+    {
+        set(CLOCK);
+        display.show(BACK, BLANK, false, REPLACE);
+        wait(500);
     }
 
     State stacked;

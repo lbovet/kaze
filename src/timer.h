@@ -8,9 +8,12 @@
 class Timer
 {
 public:
-    void open()
+    void open(bool snooze = false)
     {
-        display.show(HOURGLASS, running ? value() : minutes, false, DISSOLVE);
+        if(snooze)
+            display.show(INTERVAL, running ? value() : minutes, false, REPLACE);
+        else
+            display.show(HOURGLASS, running ? value() : minutes, false, REPLACE);
     }
 
     void activate()

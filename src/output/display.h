@@ -10,6 +10,8 @@
 #define DIRTY 0xfd
 #define SYMBOL 0xfe
 
+#define BLINK_DURATION 600
+
 const byte symbols[] PROGMEM = {
     0x7c, 0x44, 0x7c, 0x00, 0x44, 0x7c, 0x04, 0x00, 0x5c, 0x54, 0x74, 0x00,
     0x54, 0x54, 0x7c, 0x00, 0x70, 0x10, 0x7c, 0x00, 0x74, 0x54, 0x5c, 0x00,
@@ -82,12 +84,12 @@ public:
             data[1] = symbol;
             mask |= 0x00ff;
         }
-        if (data[2] != right / 10 || (right < 10 && !pad))
+        if (right == BLANK || data[2] != right / 10 || (right < 10 && !pad))
         {
             mask |= 0x0f00;
             data[2] = right == BLANK ? BLANK : (right < 10 && !pad ? BLANK : right / 10);
         }
-        if (data[3] != right % 10)
+        if (right == BLANK || data[3] != right % 10)
         {
             mask |= 0xf000;
             data[3] = right == BLANK ? BLANK : right % 10;
@@ -128,22 +130,22 @@ public:
         }
 
         mask = 0;
-        if (data[0] != left / 10)
+        if (left == BLANK || data[0] != left / 10)
         {
             mask |= 0x000f;
             data[0] = left == BLANK ? BLANK : left / 10;
         }
-        if (data[1] != left % 10)
+        if (left == BLANK || data[1] != left % 10)
         {
             mask |= 0x00f0;
             data[1] = left == BLANK ? BLANK : left % 10;
         }
-        if (data[2] != right / 10)
+        if (right == BLANK || data[2] != right / 10)
         {
             mask |= 0x0f00;
             data[2] = right == BLANK ? BLANK : right / 10;
         }
-        if (data[3] != right % 10)
+        if (right == BLANK || data[3] != right % 10)
         {
             mask |= 0xf000;
             data[3] = right == BLANK ? BLANK : right % 10;
@@ -203,7 +205,7 @@ public:
 
     void update(boolean force = false)
     {
-        if(blinkChrono.hasPassed(1000)) {
+        if(blinkChrono.hasPassed(BLINK_DURATION)) {
             blinkChrono.stop();
             matrix1.blinkRate(HT16K33_BLINK_OFF);
             matrix2.blinkRate(HT16K33_BLINK_OFF);

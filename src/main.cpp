@@ -24,8 +24,8 @@ void setup()
   player.begin();
   touch.begin();
   delay(100);
-  Serial.println(F("Free memory: "));
-  Serial.print(freeMemory());
+  Serial.print(F("Free memory: "));
+  Serial.println(freeMemory());
 }
 
 void loop()

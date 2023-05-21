@@ -63,7 +63,7 @@ public:
     void edit()
     {
         editHour = true;
-        display.show(hour, minute, FADE);
+        display.show(hour, minute, REPLACE);
         display.blinkLeft();
     }
 
@@ -111,6 +111,11 @@ public:
         {
             display.blinkRight();
             editHour = false;
+            if(!slot())
+            {
+                minute = time.minute();
+                display.show(hour, minute, REPLACE);
+            }
             return true;
         }
         else
@@ -133,7 +138,7 @@ public:
         default:
             break;
         }
-        Serial.println(F("commit"));
+        time.set(hour, minute, slot());
     }
 
     void disable(uint8_t alarm)
@@ -157,12 +162,24 @@ public:
         default:
             break;
         }
-        Serial.println(F("discard"));
     }
 
     byte alarms()
     {
         return this->alarmBits;
+    }
+
+    uint8_t slot()
+    {
+        switch (mode)
+        {
+        case SET_ALARM_1:
+            return 1;
+        case SET_ALARM_2:
+            return 2;
+        default:
+            return 0;
+        }
     }
 
     void hideAlarms()

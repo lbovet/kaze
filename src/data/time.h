@@ -11,6 +11,7 @@ public:
         rtc.set_rtc_address(0x68);
         rtc.set_model(URTCLIB_MODEL_DS3232);
     }
+
     boolean update()
     {
         rtc.refresh();
@@ -29,7 +30,7 @@ public:
         case 1:
             return rtc.alarmHour(URTCLIB_ALARM_1);
         case 2:
-            return rtc.alarmHour(URTCLIB_ALARM_1);
+            return rtc.alarmHour(URTCLIB_ALARM_2);
         default:
             return rtc.hour();
         }
@@ -42,7 +43,7 @@ public:
         case 1:
             return rtc.alarmMinute(URTCLIB_ALARM_1);
         case 2:
-            return rtc.alarmMinute(URTCLIB_ALARM_1);
+            return rtc.alarmMinute(URTCLIB_ALARM_2);
         default:
             return rtc.minute();
         }
@@ -51,6 +52,23 @@ public:
     uint8_t second()
     {
         return rtc.second();
+    }
+
+    void set(uint8_t hour, uint8_t minute, uint8_t alarm = 0)
+    {
+        switch (alarm)
+        {
+        case 1:
+            rtc.alarmSet(URTCLIB_ALARM_TYPE_1_FIXED_HMS, 0, minute, hour, 0);
+            break;
+        case 2:
+            rtc.alarmSet(URTCLIB_ALARM_TYPE_2_FIXED_HM, 0, minute, hour, 0);
+            break;
+        default:
+            rtc.set(0, minute, hour, 0, 0, 0, 0);
+            break;
+        }
+        rtc.refresh();
     }
 
 private:

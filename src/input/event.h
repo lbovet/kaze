@@ -7,6 +7,7 @@
 enum Event
 {
     NOTHING = 0,
+    DELAY,
     INIT,
     TAP,
     PRESS,
@@ -15,7 +16,6 @@ enum Event
     SCROLL_UP,
     SCROLL_DOWN,
     TOUCH,
-    DELAY,
     TURN_UP,
     TURN_DOWN,
     TIME,
