@@ -12,10 +12,9 @@
 enum State
 {
     CLOCK,
-    ALARM_1,
-    ALARM_2,
-    TIMER,
     TIME_SET,
+    TIMER,
+    CLOCK_SET,
     MENU,
     WAIT
 };
@@ -66,9 +65,6 @@ public:
             }
             switch (state())
             {
-            case ALARM_1:
-            case ALARM_2:
-            case TIME_SET:
             case CLOCK:
                 switch (event)
                 {
@@ -83,6 +79,7 @@ public:
                     break;
                 case TURN_DOWN:
                     clock->turn(BOTTOM);
+                    timer->disable();
                     wait(2000);
                     acknowledge(event);
                     break;
@@ -93,6 +90,7 @@ public:
                     break;
                 case TAP:
                     timer->hide();
+                    clock->hideAlarms();
                     set(MENU);
                 case ALARM:
                     Serial.println("ALARM!");
@@ -112,6 +110,37 @@ public:
                     break;
                 }
                 break;
+            case TIME_SET:
+                TIMEOUT
+                switch (event)
+                {
+                case INIT:
+                    clock->edit();
+                    acknowledge(event);
+                    break;
+                case TAP:
+                    if(!clock->next())
+                        set(CLOCK);
+                    break;
+                case PRESS:
+                    clock->discard();
+                    set(CLOCK);
+                    break;
+                case SWIPE_UP:
+                case SCROLL_UP:
+                    clock->up();
+                    break;
+                case SWIPE_DOWN:
+                case SCROLL_DOWN:
+                    clock->down();
+                    break;
+                default:
+                    SKIP_TOUCH
+                    clock->commit();
+                    set(CLOCK, TURN_SKIP);
+                    break;
+                }
+                break;
             case TIMER:
                 TIMEOUT
                 switch (event)
@@ -123,7 +152,7 @@ public:
                 case TAP:
                 case DELAY:
                     timer->activate();
-                    set(CLOCK, TURN_SKIP);
+                    set(CLOCK);
                     break;
                 case SWIPE_UP:
                 case SCROLL_UP:
@@ -155,7 +184,7 @@ public:
                     menu->down();
                     break;
                 case TAP:
-                    set((State)menu->select(TIME_SET, TIMER, ALARM_1, ALARM_2, CLOCK));
+                    set((State)menu->select(TIME_SET, TIMER, CLOCK));
                     break;
                 case PRESS:
                     if(menu->disable())

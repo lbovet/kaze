@@ -21,14 +21,33 @@ public:
         }
         return false;
     }
-    uint8_t hour()
+
+    uint8_t hour(uint8_t alarm = 0)
     {
-        return rtc.hour();
+        switch (alarm)
+        {
+        case 1:
+            return rtc.alarmHour(URTCLIB_ALARM_1);
+        case 2:
+            return rtc.alarmHour(URTCLIB_ALARM_1);
+        default:
+            return rtc.hour();
+        }
     }
-    uint8_t minute()
+
+    uint8_t minute(uint8_t alarm = 0)
     {
-        return rtc.minute();
+        switch (alarm)
+        {
+        case 1:
+            return rtc.alarmMinute(URTCLIB_ALARM_1);
+        case 2:
+            return rtc.alarmMinute(URTCLIB_ALARM_1);
+        default:
+            return rtc.minute();
+        }
     }
+
     uint8_t second()
     {
         return rtc.second();

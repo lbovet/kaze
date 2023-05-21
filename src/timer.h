@@ -64,7 +64,6 @@ public:
 
     void hide()
     {
-        Serial.println("hide");
         display->setProgress(0);
     }
 

@@ -5,11 +5,12 @@
 #include "output/player.h"
 #include "input/orientation.h"
 #include "timer.h"
+#include "clock.h"
 
 class Menu
 {
 public:
-    Menu(Display *display, Timer *timer, Player *player) : display(display), timer(timer), player(player) {}
+    Menu(Display *display, Timer *timer, Clock *clock, Player *player) : display(display), timer(timer), clock(clock), player(player) {}
 
     void open()
     {
@@ -22,7 +23,10 @@ public:
         else
         {
             symbol = BELL;
-            alarm = 1;
+            if(clock->alarms() & 1)
+                alarm = 1;
+            else
+                alarm = 2;
         }
         display->show(symbol, alarm ? alarm : BLANK, false, FADE);
     }
@@ -102,19 +106,18 @@ public:
     }
 
     uint8_t
-    select(uint8_t timeSet, uint8_t timer, uint8_t alarm1, uint8_t alarm2, uint8_t back)
+    select(uint8_t timeSet, uint8_t timer, uint8_t back)
     {
         switch (symbol)
         {
+        case BELL:
+            clock->setAlarm(alarm);
+            return timeSet;
         case WALL_CLOCK:
+            clock->setClock();
             return timeSet;
         case HOURGLASS:
             return timer;
-        case BELL:
-            if (alarm == 1)
-                return alarm1;
-            if (alarm == 2)
-                return alarm2;
         default:
             return back;
         }
@@ -127,6 +130,9 @@ public:
         case HOURGLASS:
             timer->disable();
             return true;
+        case BELL:
+            clock->disable(alarm);
+            return true;
         default:
             return false;
         }
@@ -137,6 +143,7 @@ private:
     uint8_t alarm = 0;
     Display *display;
     Timer *timer;
+    Clock *clock;
     Player *player;
 };
 

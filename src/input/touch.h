@@ -7,7 +7,7 @@
 
 #include "event.h"
 
-#define PRESS_DELAY 1500
+#define PRESS_DELAY 1200
 #define TAP_DELAY 50
 #define SCROLL_DELAY 200
 

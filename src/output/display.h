@@ -64,7 +64,7 @@ public:
 
     void show(Symbol symbol, byte right, boolean pad, Transition transition)
     {
-        chrono.restart();
+        animChrono.restart();
         if (iteration > 0)
         {
             if (this->transition == FALL)
@@ -116,7 +116,7 @@ public:
 
     void show(byte left, byte right, Transition transition)
     {
-        chrono.restart();
+        animChrono.restart();
         if (iteration > 0)
         {
             if (this->transition == FALL)
@@ -177,12 +177,12 @@ public:
 
     void setMarkers(byte markers)
     {
-        bar = (bar & 0xff00) | markers;
+        bar = (bar & 0xff00) | ((markers & 1) << 1) | ((markers & 2) << 4);
     }
 
     void setProgress(uint8_t progress)
     {
-        this->bar = (bar & 0x00ff) | progress ? bit(16 - progress) : 0;
+        bar = (bar & 0x00ff) | (progress ? bit(16 - progress) : 0);
     }
 
     void setBrightness(uint8_t brightness)
@@ -191,14 +191,29 @@ public:
         matrix2.setBrightness(brightness);
     }
 
+    void blinkLeft() {
+        blinkChrono.start();
+        (position == TOP ? matrix1 : matrix2).blinkRate(HT16K33_BLINK_2HZ);
+    }
+
+    void blinkRight() {
+        blinkChrono.start();
+        (position == TOP ? matrix2 : matrix1).blinkRate(HT16K33_BLINK_2HZ);
+    }
+
     void update(boolean force = false)
     {
-        if (!force && (!chrono.hasPassed(interval) || iteration == 0))
+        if(blinkChrono.hasPassed(1000)) {
+            blinkChrono.stop();
+            matrix1.blinkRate(HT16K33_BLINK_OFF);
+            matrix2.blinkRate(HT16K33_BLINK_OFF);
+        }
+        if (!force && (!animChrono.hasPassed(interval) || iteration == 0))
         {
             return;
         }
         iteration--;
-        chrono.restart();
+        animChrono.restart();
         byte source;
         for (uint8_t i = 0; i < 16; i++)
         {
@@ -335,7 +350,8 @@ public:
     }
 
 private:
-    Chrono chrono;
+    Chrono animChrono;
+    Chrono blinkChrono = Chrono(false);
     byte data[4] = {BLANK, BLANK, BLANK, BLANK};
     uint16_t mask;
     byte displayBuffer[16] = {0};

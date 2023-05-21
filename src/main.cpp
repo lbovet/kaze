@@ -21,9 +21,9 @@ Touch touch;
 Orientation orientation;
 
 Timer timer(&display, &player);
-Clock clock(&display, &time);
+Clock clock(&display, &time, &orientation);
 
-Menu menu(&display, &timer, &player);
+Menu menu(&display, &timer, &clock, &player);
 
 EventBus bus;
 StateMachine stateMachine(&bus, &clock, &timer, &menu);
