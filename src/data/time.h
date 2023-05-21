@@ -10,6 +10,8 @@ public:
     {
         rtc.set_rtc_address(0x68);
         rtc.set_model(URTCLIB_MODEL_DS3232);
+        rtc.alarmClearFlag(URTCLIB_ALARM_1);
+        rtc.alarmClearFlag(URTCLIB_ALARM_2);
     }
 
     boolean update()
@@ -69,6 +71,20 @@ public:
             break;
         }
         rtc.refresh();
+    }
+
+    boolean checkAlarm() {
+        if (rtc.alarmTriggered(URTCLIB_ALARM_1))
+        {
+            rtc.alarmClearFlag(URTCLIB_ALARM_1);
+            return true;
+        }
+        if (rtc.alarmTriggered(URTCLIB_ALARM_2))
+        {
+            rtc.alarmClearFlag(URTCLIB_ALARM_2);
+            return true;
+        }
+        return false;
     }
 
 private:

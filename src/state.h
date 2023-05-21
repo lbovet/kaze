@@ -94,6 +94,10 @@ public:
                     clock.hideAlarms();
                     set(MENU);
                     break;
+                case ELAPSED:
+                    Serial.println(F("ELAPSED!"));
+                    acknowledge(event);
+                    break;
                 case ALARM:
                     Serial.println(F("ALARM!"));
                     acknowledge(event);
@@ -211,6 +215,7 @@ public:
             case TURN_DOWN:
             case TURN_UP:
             case ALARM:
+            case ELAPSED:
                 break; // requires explicit acknowledge
             default:
                 acknowledge(event); // swallow event in all cases

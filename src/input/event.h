@@ -19,7 +19,8 @@ enum Event
     TURN_UP,
     TURN_DOWN,
     TIME,
-    ALARM
+    ALARM,
+    ELAPSED
 };
 
 enum Direction
