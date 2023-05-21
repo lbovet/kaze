@@ -7,8 +7,10 @@
 
 #include "event.h"
 
-#define PRESS_DELAY 1200
+#define PRESS_DELAY 1000
 #define TAP_DELAY 50
+#define BOUNCE_DELAY 600
+#define QUIET_DELAY 300
 #define SCROLL_DELAY 200
 
 #define sgn(x) (((x) < 0) ? -1 : ((x) > 0))
@@ -32,9 +34,14 @@ public:
 
         if (current != last)
         {
+            tapping = false;
             int8_t newPosition = 0;
             if (last == 0)
             {
+                if (chrono.elapsed() < BOUNCE_DELAY)
+                {
+                    bounce = true;
+                }
                 event = TOUCH;
                 scroll = false;
                 ref = current;
@@ -47,7 +54,10 @@ public:
                 {
                     if (!hold && chrono.hasPassed(TAP_DELAY))
                     {
-                        event = TAP;
+                        if(bounce)
+                            bounce = false;
+                        else
+                            tapping = true;
                     }
                     hold = false;
                 }
@@ -83,6 +93,11 @@ public:
                         chrono.restart();
                         event = lastPosition > 0 ? SCROLL_UP : SCROLL_DOWN;
                     }
+                }
+            } else {
+                if(tapping && chrono.hasPassed(QUIET_DELAY)) {
+                    event = TAP;
+                    tapping = false;
                 }
             }
         }
@@ -127,6 +142,8 @@ private:
     }
 
     Chrono chrono;
+    boolean bounce = false;
+    boolean tapping = false;
     uint16_t ref = 0;
     uint16_t last = 0;
     uint16_t current = 0;

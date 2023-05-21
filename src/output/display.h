@@ -130,15 +130,15 @@ public:
         }
 
         mask = 0;
+        if (left == BLANK || data[0] == SYMBOL || data[1] != left % 10)
+        {
+            mask |= 0x00f0;
+            data[1] = left == BLANK ? BLANK : left % 10;
+        }
         if (left == BLANK || data[0] != left / 10)
         {
             mask |= 0x000f;
             data[0] = left == BLANK ? BLANK : left / 10;
-        }
-        if (left == BLANK || data[1] != left % 10)
-        {
-            mask |= 0x00f0;
-            data[1] = left == BLANK ? BLANK : left % 10;
         }
         if (right == BLANK || data[2] != right / 10)
         {
