@@ -48,8 +48,7 @@ void loop()
       bus.post(TIME);
     }
     if(time.checkAlarm()) {
-      Serial.println("ALARM");
-      //bus.post(ALARM);
+      bus.post(ALARM);
     }
     if (timer.update())
     {

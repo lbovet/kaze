@@ -13,6 +13,7 @@ public:
 
     void open()
     {
+        player.stop();
         if (timer.active())
         {
             symbol = HOURGLASS;
@@ -118,6 +119,7 @@ public:
         case HOURGLASS:
             return timer;
         default:
+            player.play();
             return back;
         }
     }

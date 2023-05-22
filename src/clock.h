@@ -5,22 +5,21 @@
 #include "data/time.h"
 #include "input/orientation.h"
 
-enum ClockMode
-{
-    SHOW_CLOCK,
-    SET_CLOCK,
-    SET_ALARM_1,
-    SET_ALARM_2
-};
-
 class Clock
 {
-public:
+    enum ClockMode
+    {
+        SHOW_CLOCK,
+        SET_CLOCK,
+        SET_ALARM_1,
+        SET_ALARM_2
+    };
 
+public:
     void show()
     {
         mode = SHOW_CLOCK;
-        if(position == TOP)
+        if (position == TOP)
             display.setMarkers(alarmBits);
         else
             display.setMarkers(0);
@@ -111,7 +110,7 @@ public:
         {
             display.blinkRight();
             editHour = false;
-            if(!slot())
+            if (!slot())
             {
                 minute = time.minute();
                 display.show(hour, minute, REPLACE);

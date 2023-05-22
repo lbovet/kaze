@@ -9,16 +9,6 @@
 #include "timer.h"
 #include "menu.h"
 
-enum State
-{
-    CLOCK,
-    TIME_SET,
-    TIMER,
-    CLOCK_SET,
-    MENU,
-    WAIT
-};
-
 #define TIMEOUT        \
     if (event == TIME) \
     {                  \
@@ -45,6 +35,16 @@ enum State
 
 class StateMachine
 {
+    enum State
+    {
+        CLOCK,
+        TIME_SET,
+        TIMER,
+        CLOCK_SET,
+        MENU,
+        WAIT
+    };
+
 public:
     StateMachine()
     {
