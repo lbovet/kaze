@@ -1,6 +1,8 @@
 #ifndef STATE_H
 #define STATE_H
 
+#include <MemoryFree.h>
+
 #include "input/event.h"
 #include "data/time.h"
 #include "output/display.h"
@@ -9,20 +11,26 @@
 #include "timer.h"
 #include "menu.h"
 
-#define TIMEOUT        \
-    if (event == TIME) \
-    {                  \
-        break;         \
-    }                  \
-    else               \
-    {                  \
-        timeout(8000); \
+#define DEFAULT_TIMEOUT \
+    if (event == TIME)  \
+    {                   \
+        break;          \
+    }                   \
+    else                \
+    {                   \
+        timeout(8000);  \
     }
 
 #define SKIP_TOUCH      \
     if (event == TOUCH) \
     {                   \
         break;          \
+    }
+
+#define SKIP_TIME      \
+    if (event == TIME) \
+    {                  \
+        break;         \
     }
 
 #define SKIP_SCROLL                                 \
@@ -40,9 +48,11 @@ class StateMachine
         CLOCK,
         TIME_SET,
         TIMER,
-        CLOCK_SET,
         MENU,
-        WAIT
+        WAIT,
+        CHIME,
+        SNOOZE,
+        VOLUME
     };
 
 public:
@@ -58,10 +68,24 @@ public:
         {
             if (event != TIME)
             {
-                Serial.print(F("event "));
+                if(time.hour() < 10)
+                    Serial.print(0);
+                Serial.print(time.hour());
+                Serial.print(F(":"));
+                if (time.minute() < 10)
+                    Serial.print(0);
+                Serial.print(time.minute());
+                Serial.print(F(":"));
+                if (time.second() < 10)
+                    Serial.print(0);
+                Serial.print(time.second());
+                Serial.print(F(" event "));
                 Serial.print(event);
                 Serial.print(F(" state "));
-                Serial.println(state());
+                Serial.print(state());
+                Serial.print(F(" free "));
+                Serial.print(freeMemory());
+                Serial.println(F(" B"));
             }
             switch (state())
             {
@@ -70,9 +94,10 @@ public:
                 {
                 case INIT:
                     clock.show();
-                    wait(800);
+                    clock.clearAlarm();
                     timer.progress();
                     acknowledge(event);
+                    wait(800);
                     break;
                 case TIME:
                     clock.update();
@@ -89,17 +114,27 @@ public:
                     wait(2000);
                     acknowledge(event);
                     break;
+                case SWIPE_DOWN:
+                    bus.post(ELAPSED);
+                    break;
+                case SWIPE_UP:
+                    timer.hide();
+                    clock.hideAlarms();
+                    if(player.playing())
+                        push(VOLUME);
+                    break;
                 case TAP:
                     timer.hide();
                     clock.hideAlarms();
                     set(MENU);
                     break;
                 case ELAPSED:
-                    Serial.println(F("ELAPSED!"));
+                    set(CHIME);
                     acknowledge(event);
                     break;
                 case ALARM:
-                    Serial.println(F("ALARM!"));
+                    clock.triggerAlarm();
+                    set(CHIME);
                     acknowledge(event);
                     break;
                 default:
@@ -110,14 +145,14 @@ public:
                 switch (event)
                 {
                 case DELAY:
-                    pop();
+                    pop(false);
                     break;
                 default:
                     break;
                 }
                 break;
             case TIME_SET:
-                TIMEOUT
+                DEFAULT_TIMEOUT
                 switch (event)
                 {
                 case INIT:
@@ -125,7 +160,7 @@ public:
                     acknowledge(event);
                     break;
                 case TAP:
-                    if(!clock.next())
+                    if (!clock.next())
                         set(CLOCK);
                     break;
                 case PRESS:
@@ -148,7 +183,7 @@ public:
                 }
                 break;
             case TIMER:
-                TIMEOUT
+                DEFAULT_TIMEOUT
                 switch (event)
                 {
                 case INIT:
@@ -158,7 +193,7 @@ public:
                 case TAP:
                 case DELAY:
                     timer.activate();
-                    set(CLOCK);
+                    set(clock.alarmTriggered() ? SNOOZE : CLOCK);
                     break;
                 case SWIPE_UP:
                 case SCROLL_UP:
@@ -169,7 +204,9 @@ public:
                     timer.down();
                     break;
                 case PRESS:
-                    back();
+                    if(!clock.alarmTriggered())
+                        timer.disable();
+                    back(clock.alarmTriggered() ? SNOOZE : CLOCK);
                     break;
                 default:
                     SKIP_TOUCH
@@ -179,7 +216,7 @@ public:
                 }
                 break;
             case MENU:
-                TIMEOUT
+                DEFAULT_TIMEOUT
                 switch (event)
                 {
                 case INIT:
@@ -203,9 +240,107 @@ public:
                     SKIP_TOUCH
                     SKIP_SCROLL
                     set(CLOCK, TURN_SKIP);
+                    break;
                 }
                 break;
-            default:
+            case CHIME:
+                switch(event)
+                {
+                    case INIT:
+                        clock.show();
+                        timer.disable();
+                        if(!player.playing())
+                            player.play();
+                        acknowledge(event);
+                        timeout(10 * 60 * 1000L);
+                        break;
+                    case TIME:
+                        clock.update();
+                        break;
+                    case TAP:
+                        player.stop();
+                        if(clock.alarmTriggered())
+                            set(SNOOZE);
+                        else
+                            set(CLOCK);
+                        break;
+                    case SWIPE_UP:
+                    case SWIPE_DOWN:
+                        if(clock.alarmTriggered())
+                        {
+                            player.stop();
+                            set(SNOOZE);
+                        }
+                        else
+                        {
+                            clock.hideAlarms();
+                            timer.hide();
+                            push(VOLUME);
+                        }
+                        break;
+                    default:
+                        SKIP_TOUCH
+                        SKIP_SCROLL
+                        player.stop();
+                        set(CLOCK, TURN_SKIP);
+                        break;
+                }
+                break;
+            case SNOOZE:
+                switch(event)
+                {
+                    case INIT:
+                        clock.show(REPLACE);
+                        timer.start(true);
+                        timer.progress();
+                        acknowledge(event);
+                        wait(800);
+                        break;
+                    case TIME:
+                        clock.update();
+                        timer.progress();
+                        break;
+                    case TAP:
+                    case SWIPE_UP:
+                    case SWIPE_DOWN:
+                        clock.hideAlarms();
+                        timer.hide();
+                        set(TIMER);
+                        break;
+                    case PRESS:
+                        timer.disable();
+                        back();
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            case VOLUME:
+                DEFAULT_TIMEOUT
+                switch (event)
+                {
+                case INIT:
+
+                        acknowledge(event);
+                        break;
+                case TAP:
+                case DELAY:
+                    pop();
+                    break;
+                case SWIPE_UP:
+                case SCROLL_UP:
+
+                        break;
+                case SWIPE_DOWN:
+                case SCROLL_DOWN:
+
+                        break;
+                default:
+                        SKIP_TOUCH
+                        player.stop();
+                        set(CLOCK, TURN_SKIP);
+                        break;
+                }
                 break;
             }
 
@@ -239,9 +374,13 @@ private:
         current = state;
     }
 
-    void pop()
+    void pop(boolean init = true)
     {
         current = stacked;
+        if (init)
+        {
+            bus.post(INIT);
+        }
     }
 
     State state()
@@ -260,14 +399,14 @@ private:
         push(WAIT);
     }
 
-    void timeout(uint16_t delay)
+    void timeout(uint32_t delay)
     {
         bus.post(DELAY, delay);
     }
 
-    void back()
+    void back(State state = CLOCK)
     {
-        set(CLOCK);
+        set(state);
         display.show(BACK, BLANK, false, REPLACE);
         wait(500);
     }

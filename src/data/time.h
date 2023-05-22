@@ -73,22 +73,31 @@ public:
         rtc.refresh();
     }
 
-    boolean checkAlarm() {
+    boolean checkAlarm()
+    {
         if (rtc.alarmTriggered(URTCLIB_ALARM_1))
         {
             rtc.alarmClearFlag(URTCLIB_ALARM_1);
+            alarm = 1;
             return true;
         }
         if (rtc.alarmTriggered(URTCLIB_ALARM_2))
         {
             rtc.alarmClearFlag(URTCLIB_ALARM_2);
+            alarm = 2;
             return true;
         }
         return false;
     }
 
+    uint8_t lastAlarm()
+    {
+        return alarm;
+    }
+
 private:
     uint8_t last = 255;
+    uint8_t alarm = 1;
     uRTCLib rtc;
 };
 

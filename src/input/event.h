@@ -19,8 +19,8 @@ enum Event
     TURN_UP,
     TURN_DOWN,
     TIME,
-    ALARM,
-    ELAPSED
+    ELAPSED,
+    ALARM
 };
 
 enum Direction
@@ -34,7 +34,7 @@ enum Direction
 class EventBus
 {
 public:
-    void post(Event event, short delay = 0)
+    void post(Event event, uint32_t delay = 0)
     {
         if (event != NOTHING)
         {
@@ -67,7 +67,7 @@ public:
 
 private:
     Chrono chrono;
-    short delay;
+    uint32_t delay;
     uint16_t state = 0;
 };
 

@@ -38,9 +38,9 @@ enum Symbol
     INTERVAL = 12,
     BACK = 13,
     RANDOM = 14,
-    SLEEP = 15,
-    CHILL = 16,
-    LOVE = 17,
+    MOON = 15,
+    MEDITATION = 16,
+    HEART = 17,
     EMPTY = 255
 };
 
@@ -62,6 +62,7 @@ public:
     {
         matrix1.begin();
         matrix2.begin();
+        blinkMarkers(1);
     }
 
     void show(Symbol symbol, byte right, boolean pad, Transition transition)
@@ -78,7 +79,7 @@ public:
         }
 
         mask = 0;
-        if (data[1] != symbol)
+        if (data[0] != SYMBOL || data[1] != symbol)
         {
             data[0] = SYMBOL;
             data[1] = symbol;
@@ -180,6 +181,13 @@ public:
     void setMarkers(byte markers)
     {
         bar = (bar & 0xff00) | ((markers & 1) << 1) | ((markers & 2) << 4);
+        blinkingBits = 0;
+    }
+
+    void blinkMarkers(byte markers)
+    {
+        blinkChrono.start();
+        blinkingBits = ((markers & 1) << 1) | ((markers & 2) << 4);
     }
 
     void setProgress(uint8_t progress)
@@ -194,21 +202,31 @@ public:
     }
 
     void blinkLeft() {
+        blinkingBits = 0;
         blinkChrono.start();
         (position == TOP ? matrix1 : matrix2).blinkRate(HT16K33_BLINK_2HZ);
     }
 
     void blinkRight() {
+        blinkingBits = 0;
         blinkChrono.start();
         (position == TOP ? matrix2 : matrix1).blinkRate(HT16K33_BLINK_2HZ);
     }
 
     void update(boolean force = false)
     {
-        if(blinkChrono.hasPassed(BLINK_DURATION)) {
-            blinkChrono.stop();
-            matrix1.blinkRate(HT16K33_BLINK_OFF);
-            matrix2.blinkRate(HT16K33_BLINK_OFF);
+        if(blinkChrono.hasPassed(BLINK_DURATION) && iteration == 0) {
+            if(blinkingBits) {
+                blinkChrono.restart();
+                bar = (bar & 0xff00) | (bar & 0x00ff & ~blinkingBits) | (~(bar & 0x00ff & blinkingBits) & blinkingBits);
+                this->iteration = 1;
+                this->transition = REPLACE;
+            } else
+            {
+                blinkChrono.stop();
+                matrix1.blinkRate(HT16K33_BLINK_OFF);
+                matrix2.blinkRate(HT16K33_BLINK_OFF);
+            }
         }
         if (!force && (!animChrono.hasPassed(interval) || iteration == 0))
         {
@@ -363,6 +381,7 @@ private:
     Transition transition;
     uint8_t interval;
     uint16_t bar = 0;
+    byte blinkingBits = 0;
     Matrix matrix1 = Matrix(0x70);
     Matrix matrix2 = Matrix(0x71);
 };

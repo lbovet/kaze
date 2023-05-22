@@ -16,14 +16,16 @@ class Clock
     };
 
 public:
-    void show()
+    void show(Transition transition = FADE)
     {
         mode = SHOW_CLOCK;
         if (position == TOP)
             display.setMarkers(alarmBits);
         else
             display.setMarkers(0);
-        display.show(time.hour(), time.minute(), FADE);
+        if(triggered)
+            display.blinkMarkers(time.lastAlarm());
+        display.show(time.hour(), time.minute(), transition);
     }
 
     void turn(Position position)
@@ -186,6 +188,23 @@ public:
         display.setMarkers(0);
     }
 
+    void triggerAlarm()
+    {
+        triggered = true;
+        display.blinkMarkers(1);
+    }
+
+    boolean alarmTriggered()
+    {
+        return triggered;
+    }
+
+    void clearAlarm()
+    {
+        triggered = false;
+        display.blinkMarkers(0);
+    }
+
 private:
     byte alarmBits = 1;
     ClockMode mode;
@@ -193,6 +212,7 @@ private:
     uint8_t hour;
     uint8_t minute;
     Position position;
+    boolean triggered;
 };
 
 Clock clock;

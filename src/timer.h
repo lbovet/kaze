@@ -8,12 +8,20 @@
 class Timer
 {
 public:
-    void open(bool snooze = false)
+    void open()
     {
+        display.show(snooze ? INTERVAL : HOURGLASS, running ? value() : minutes, false, REPLACE);
+    }
+
+    void start(bool snooze = false)
+    {
+        this->snooze = snooze;
+        running = false;
         if(snooze)
-            display.show(INTERVAL, running ? value() : minutes, false, REPLACE);
-        else
-            display.show(HOURGLASS, running ? value() : minutes, false, REPLACE);
+        {
+            minutes = 10;
+            activate();
+        }
     }
 
     void activate()
@@ -27,6 +35,7 @@ public:
 
     void disable()
     {
+        snooze = false;
         running = false;
         hide();
     }
@@ -70,24 +79,24 @@ public:
 
     void up()
     {
-        if (running)
+        if (running && !snooze)
         {
             minutes = value();
         }
         running = false;
         if(minutes < 59)
-            display.show(HOURGLASS, ++minutes, false, SLIDE_UP);
+            display.show(snooze ? INTERVAL : HOURGLASS, ++minutes, false, SLIDE_UP);
     }
 
     void down()
     {
-        if (running)
+        if (running && !snooze)
         {
             minutes = value();
         }
         running = false;
         if(minutes > 1)
-            display.show(HOURGLASS, --minutes, false, SLIDE_DOWN);
+            display.show(snooze ? INTERVAL : HOURGLASS, --minutes, false, SLIDE_DOWN);
     }
 
 private:
@@ -105,6 +114,7 @@ private:
     }
     Chrono chrono;
     boolean running;
+    boolean snooze;
     uint8_t minutes = 15;
 };
 

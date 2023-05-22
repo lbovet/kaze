@@ -35,13 +35,13 @@ public:
     {
         switch (symbol)
         {
-        case LOVE:
-            symbol = CHILL;
+        case HEART:
+            symbol = MEDITATION;
             break;
-        case CHILL:
-            symbol = SLEEP;
+        case MEDITATION:
+            symbol = MOON;
             break;
-        case SLEEP:
+        case MOON:
             symbol = BELL;
             alarm = 1;
             break;
@@ -60,7 +60,7 @@ public:
             symbol = WALL_CLOCK;
             break;
         case WALL_CLOCK:
-            symbol = LOVE;
+            symbol = HEART;
             break;
         default:
             break;
@@ -84,19 +84,19 @@ public:
         case BELL:
             if (alarm == 1)
             {
-                symbol = SLEEP;
+                symbol = MOON;
                 alarm = 0;
             }
             else
                 alarm--;
             break;
-        case SLEEP:
-            symbol = CHILL;
+        case MOON:
+            symbol = MEDITATION;
             break;
-        case CHILL:
-            symbol = LOVE;
+        case MEDITATION:
+            symbol = HEART;
             break;
-        case LOVE:
+        case HEART:
             symbol = WALL_CLOCK;
             break;
         default:

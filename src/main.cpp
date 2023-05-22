@@ -1,4 +1,3 @@
-#include <MemoryFree.h>
 #include <Chrono.h>
 
 #include "SD.h"
@@ -24,8 +23,6 @@ void setup()
   player.begin();
   touch.begin();
   delay(100);
-  Serial.print(F("Free memory: "));
-  Serial.println(freeMemory());
 }
 
 void loop()
@@ -47,7 +44,8 @@ void loop()
     {
       bus.post(TIME);
     }
-    if(time.checkAlarm()) {
+    if (time.checkAlarm())
+    {
       bus.post(ALARM);
     }
     if (timer.update())
