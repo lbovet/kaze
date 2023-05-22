@@ -11,6 +11,7 @@
 #include "timer.h"
 #include "state.h"
 #include "menu.h"
+#include "volume.h"
 
 Chrono longDelay, shortDelay;
 
@@ -56,4 +57,5 @@ void loop()
 
   stateMachine.update();
   display.update();
+  volume.update();
 }

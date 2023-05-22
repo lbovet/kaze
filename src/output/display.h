@@ -32,7 +32,7 @@ enum Symbol
     BELL = 6,
     HOURGLASS = 7,
     MUSIC = 8,
-    VOLUME = 9,
+    SPEAKER = 9,
     NEXT = 10,
     STOP = 11,
     INTERVAL = 12,

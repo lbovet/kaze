@@ -10,7 +10,7 @@ class Timer
 public:
     void open()
     {
-        display.show(snooze ? INTERVAL : HOURGLASS, running ? value() : minutes, false, REPLACE);
+        display.show(snooze ? INTERVAL : HOURGLASS, running && !snooze ? value() : minutes, false, REPLACE);
     }
 
     void start(bool snooze = false)

@@ -6,6 +6,7 @@
 #include "input/orientation.h"
 #include "timer.h"
 #include "clock.h"
+#include "volume.h"
 
 class Menu
 {
@@ -13,7 +14,6 @@ public:
 
     void open()
     {
-        player.stop();
         if (timer.active())
         {
             symbol = HOURGLASS;
@@ -119,6 +119,7 @@ public:
         case HOURGLASS:
             return timer;
         default:
+            volume.smoothStart();
             player.play();
             return back;
         }

@@ -10,6 +10,7 @@
 #include "clock.h"
 #include "timer.h"
 #include "menu.h"
+#include "volume.h"
 
 #define DEFAULT_TIMEOUT \
     if (event == TIME)  \
@@ -115,13 +116,16 @@ public:
                     acknowledge(event);
                     break;
                 case SWIPE_DOWN:
-                    bus.post(ELAPSED);
-                    break;
                 case SWIPE_UP:
-                    timer.hide();
-                    clock.hideAlarms();
                     if(player.playing())
+                    {
+                        timer.hide();
+                        clock.hideAlarms();
                         push(VOLUME);
+                    }
+                    break;
+                case PRESS:
+                    volume.smoothStop();
                     break;
                 case TAP:
                     timer.hide();
@@ -258,7 +262,7 @@ public:
                         clock.update();
                         break;
                     case TAP:
-                        player.stop();
+                        volume.smoothStop();
                         if(clock.alarmTriggered())
                             set(SNOOZE);
                         else
@@ -268,7 +272,7 @@ public:
                     case SWIPE_DOWN:
                         if(clock.alarmTriggered())
                         {
-                            player.stop();
+                            volume.smoothStop();
                             set(SNOOZE);
                         }
                         else
@@ -278,10 +282,14 @@ public:
                             push(VOLUME);
                         }
                         break;
+                    case ALARM:
+                    case ELAPSED:
+                        break;
+                        acknowledge(event);
                     default:
                         SKIP_TOUCH
                         SKIP_SCROLL
-                        player.stop();
+                        volume.smoothStop();
                         set(CLOCK, TURN_SKIP);
                         break;
                 }
@@ -291,7 +299,8 @@ public:
                 {
                     case INIT:
                         clock.show(REPLACE);
-                        timer.start(true);
+                        if(!timer.active())
+                            timer.start(true);
                         timer.progress();
                         acknowledge(event);
                         wait(800);
@@ -311,7 +320,17 @@ public:
                         timer.disable();
                         back();
                         break;
+                    case ALARM:
+                    case ELAPSED:
+                        set(CHIME);
+                        acknowledge(event);
+                        break;
+                    case DELAY:
+                        break;
                     default:
+                        SKIP_TOUCH
+                        SKIP_SCROLL
+                        set(CLOCK, TURN_SKIP);
                         break;
                 }
                 break;
@@ -320,7 +339,7 @@ public:
                 switch (event)
                 {
                 case INIT:
-
+                        volume.open();
                         acknowledge(event);
                         break;
                 case TAP:
@@ -329,15 +348,15 @@ public:
                     break;
                 case SWIPE_UP:
                 case SCROLL_UP:
-
+                        volume.up();
                         break;
                 case SWIPE_DOWN:
                 case SCROLL_DOWN:
-
+                        volume.down();
                         break;
                 default:
                         SKIP_TOUCH
-                        player.stop();
+                        volume.smoothStop();
                         set(CLOCK, TURN_SKIP);
                         break;
                 }
@@ -368,8 +387,12 @@ private:
         }
     }
 
-    void push(State state)
+    void push(State state, boolean init = true)
     {
+        if (init)
+        {
+            bus.post(INIT);
+        }
         stacked = current;
         current = state;
     }
@@ -396,7 +419,7 @@ private:
     void wait(uint16_t delay)
     {
         bus.post(DELAY, delay);
-        push(WAIT);
+        push(WAIT, false);
     }
 
     void timeout(uint32_t delay)

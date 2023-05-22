@@ -7,7 +7,7 @@
 
 #include "event.h"
 
-#define PRESS_DELAY 1000
+#define PRESS_DELAY 800
 #define TAP_DELAY 50
 #define BOUNCE_DELAY 600
 #define QUIET_DELAY 300

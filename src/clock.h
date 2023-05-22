@@ -191,7 +191,7 @@ public:
     void triggerAlarm()
     {
         triggered = true;
-        display.blinkMarkers(1);
+        display.blinkMarkers(time.lastAlarm());
     }
 
     boolean alarmTriggered()

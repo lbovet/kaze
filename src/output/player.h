@@ -46,6 +46,12 @@ public:
             Serial.println(F("Could not open file track001.mp3"));
     }
 
+    void setVolume(uint8_t volume)
+    {
+        uint8_t value = 0x60 - (volume * 0x60 / 20);
+        musicPlayer.setVolume(value, value);
+    }
+
     void stop()
     {
         musicPlayer.stopPlaying();
