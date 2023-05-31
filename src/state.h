@@ -4,6 +4,7 @@
 #include <MemoryFree.h>
 
 #include "input/event.h"
+#include "input/orientation.h"
 #include "data/time.h"
 #include "output/display.h"
 #include "output/player.h"
@@ -137,8 +138,10 @@ public:
                     acknowledge(event);
                     break;
                 case ALARM:
-                    clock.triggerAlarm();
-                    set(CHIME);
+                    if(orientation.current() == TOP) {
+                        clock.triggerAlarm();
+                        set(CHIME);
+                    }
                     acknowledge(event);
                     break;
                 default:

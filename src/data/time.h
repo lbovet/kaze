@@ -10,6 +10,7 @@ public:
     {
         rtc.set_rtc_address(0x68);
         rtc.set_model(URTCLIB_MODEL_DS3232);
+        rtc.refresh();
         rtc.alarmClearFlag(URTCLIB_ALARM_1);
         rtc.alarmClearFlag(URTCLIB_ALARM_2);
     }
