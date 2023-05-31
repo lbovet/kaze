@@ -159,7 +159,10 @@ public:
         if (alarmBits == 3)
             alarmBits &= ~alarm;
         else
+        {
             alarmBits = alarm == 1 ? 2 : 1;
+            time.set(time.hour(alarmBits), time.minute(alarmBits), alarmBits);
+        }
         time.deactivateAlarm(alarm);
     }
 
