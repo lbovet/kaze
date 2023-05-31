@@ -258,7 +258,10 @@ public:
                     clock.show();
                     timer.disable();
                     if (!player.playing())
-                        player.play();
+                    {
+                        volume.smoothStart(Player::ALARM);
+                        player.play(Player::ALARM);
+                    }
                     acknowledge(event);
                     timeout(10 * 60 * 1000L);
                     break;

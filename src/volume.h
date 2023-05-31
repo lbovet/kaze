@@ -65,14 +65,14 @@ public:
         starting = false;
     }
 
-    void start(Music music)
+    void start(Player::Music music)
     {
         this->music = music;
         current = target = storage.read(VOLUME, music);
         updated = true;
     }
 
-    void smoothStart(Music music)
+    void smoothStart(Player::Music music)
     {
         this->music = music;
         player.setVolume(0);
@@ -91,7 +91,7 @@ private:
     Chrono chrono;
     int8_t current;
     int8_t target;
-    Music music;
+    Player::Music music;
     boolean updated;
     bool stopping = false;
     bool starting = false;

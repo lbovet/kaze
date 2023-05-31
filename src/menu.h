@@ -118,17 +118,17 @@ public:
         case HOURGLASS:
             return timer;
         default:
-            Music music;
+            Player::Music music;
             switch (symbol)
             {
             case MOON:
-                music = SLEEP;
+                music = Player::SLEEP;
                 break;
             case MEDITATION:
-                music = MASSAGE;
+                music = Player::MASSAGE;
                 break;
             case HEART:
-                music = LOVE;
+                music = Player::LOVE;
                 break;
             default:
                 return back;

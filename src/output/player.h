@@ -11,17 +11,17 @@
 #define CARDCS 4        // Card chip select pin
 #define DREQ 3          // VS1053 Data request, ideally an Interrupt pin
 
-enum Music
-{
-    SLEEP,
-    MASSAGE,
-    LOVE,
-    CHIME
-};
-
 class Player
 {
 public:
+    enum Music
+    {
+        SLEEP,
+        MASSAGE,
+        LOVE,
+        ALARM
+    };
+
     void begin()
     {
         if (!musicPlayer.begin())
@@ -40,7 +40,7 @@ public:
             Serial.println(F("DREQ pin is not an interrupt pin"));
     }
 
-    void play(Music section = SLEEP, int8_t track = -1)
+    void play(Music music = SLEEP, int8_t track = -1)
     {
         if (playing())
         {
