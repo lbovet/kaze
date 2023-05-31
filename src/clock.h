@@ -16,6 +16,18 @@ class Clock
     };
 
 public:
+    void begin()
+    {
+        if(time.alarmSet(1))
+        {
+            alarmBits |= 1;
+        }
+        if (time.alarmSet(2))
+        {
+            alarmBits |= 2;
+        }
+    }
+
     void show(Transition transition = FADE)
     {
         mode = SHOW_CLOCK;
@@ -148,6 +160,7 @@ public:
             alarmBits &= ~alarm;
         else
             alarmBits = alarm == 1 ? 2 : 1;
+        time.deactivateAlarm(alarm);
     }
 
     void discard()
@@ -206,7 +219,7 @@ public:
     }
 
 private:
-    byte alarmBits = 1;
+    byte alarmBits = 0;
     ClockMode mode;
     boolean editHour;
     uint8_t hour;

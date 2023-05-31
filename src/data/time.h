@@ -74,6 +74,39 @@ public:
         rtc.refresh();
     }
 
+    void deactivateAlarm(uint8_t alarm)
+    {
+        switch (alarm)
+        {
+        case 1:
+            rtc.alarmDisable(URTCLIB_ALARM_1);
+            break;
+        case 2:
+            rtc.alarmDisable(URTCLIB_ALARM_2);
+            break;
+        default:
+            break;
+        }
+    }
+
+    boolean alarmSet(uint8_t alarm)
+    {
+        rtc.refresh();
+        switch (alarm)
+        {
+        case 1:
+            Serial.println(rtc.alarmMode(URTCLIB_ALARM_1));
+            return rtc.alarmMode(URTCLIB_ALARM_1) == URTCLIB_ALARM_TYPE_1_FIXED_HMS;
+            break;
+        case 2:
+            Serial.println(rtc.alarmMode(URTCLIB_ALARM_2));
+            return rtc.alarmMode(URTCLIB_ALARM_2) == URTCLIB_ALARM_TYPE_2_FIXED_HM;
+            break;
+        default:
+            return false;
+        }
+    }
+
     boolean checkAlarm()
     {
         if (rtc.alarmTriggered(URTCLIB_ALARM_1))

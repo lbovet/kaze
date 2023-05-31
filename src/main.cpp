@@ -23,6 +23,7 @@ void setup()
   display.begin();
   player.begin();
   touch.begin();
+  clock.begin();
   delay(100);
 }
 
