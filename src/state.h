@@ -70,7 +70,7 @@ public:
         {
             if (event != TIME)
             {
-                if(time.hour() < 10)
+                if (time.hour() < 10)
                     Serial.print(0);
                 Serial.print(time.hour());
                 Serial.print(F(":"));
@@ -118,7 +118,7 @@ public:
                     break;
                 case SWIPE_DOWN:
                 case SWIPE_UP:
-                    if(player.playing())
+                    if (player.playing())
                     {
                         timer.hide();
                         clock.hideAlarms();
@@ -138,7 +138,8 @@ public:
                     acknowledge(event);
                     break;
                 case ALARM:
-                    if(orientation.current() == TOP) {
+                    if (orientation.current() == TOP)
+                    {
                         clock.triggerAlarm();
                         set(CHIME);
                     }
@@ -211,7 +212,7 @@ public:
                     timer.down();
                     break;
                 case PRESS:
-                    if(!clock.alarmTriggered())
+                    if (!clock.alarmTriggered())
                         timer.disable();
                     back(clock.alarmTriggered() ? SNOOZE : CLOCK);
                     break;
@@ -251,90 +252,90 @@ public:
                 }
                 break;
             case CHIME:
-                switch(event)
+                switch (event)
                 {
-                    case INIT:
-                        clock.show();
-                        timer.disable();
-                        if(!player.playing())
-                            player.play();
-                        acknowledge(event);
-                        timeout(10 * 60 * 1000L);
-                        break;
-                    case TIME:
-                        clock.update();
-                        break;
-                    case TAP:
+                case INIT:
+                    clock.show();
+                    timer.disable();
+                    if (!player.playing())
+                        player.play();
+                    acknowledge(event);
+                    timeout(10 * 60 * 1000L);
+                    break;
+                case TIME:
+                    clock.update();
+                    break;
+                case TAP:
+                    volume.smoothStop();
+                    if (clock.alarmTriggered())
+                        set(SNOOZE);
+                    else
+                        set(CLOCK);
+                    break;
+                case SWIPE_UP:
+                case SWIPE_DOWN:
+                    if (clock.alarmTriggered())
+                    {
                         volume.smoothStop();
-                        if(clock.alarmTriggered())
-                            set(SNOOZE);
-                        else
-                            set(CLOCK);
-                        break;
-                    case SWIPE_UP:
-                    case SWIPE_DOWN:
-                        if(clock.alarmTriggered())
-                        {
-                            volume.smoothStop();
-                            set(SNOOZE);
-                        }
-                        else
-                        {
-                            clock.hideAlarms();
-                            timer.hide();
-                            push(VOLUME);
-                        }
-                        break;
-                    case ALARM:
-                    case ELAPSED:
-                        break;
-                        acknowledge(event);
-                    default:
-                        SKIP_TOUCH
-                        SKIP_SCROLL
-                        volume.smoothStop();
-                        set(CLOCK, TURN_SKIP);
-                        break;
+                        set(SNOOZE);
+                    }
+                    else
+                    {
+                        clock.hideAlarms();
+                        timer.hide();
+                        push(VOLUME);
+                    }
+                    break;
+                case ALARM:
+                case ELAPSED:
+                    break;
+                    acknowledge(event);
+                default:
+                    SKIP_TOUCH
+                    SKIP_SCROLL
+                    volume.smoothStop();
+                    set(CLOCK, TURN_SKIP);
+                    break;
                 }
                 break;
             case SNOOZE:
-                switch(event)
+                switch (event)
                 {
-                    case INIT:
-                        clock.show(REPLACE);
-                        if(!timer.active())
-                            timer.start(true);
-                        timer.progress();
-                        acknowledge(event);
-                        wait(800);
-                        break;
-                    case TIME:
-                        clock.update();
-                        timer.progress();
-                        break;
-                    case TAP:
-                    case SWIPE_UP:
-                    case SWIPE_DOWN:
-                        clock.hideAlarms();
-                        timer.hide();
-                        set(TIMER);
-                        break;
-                    case PRESS:
-                        timer.disable();
-                        back();
-                        break;
-                    case ALARM:
-                    case ELAPSED:
-                        set(CHIME);
-                        acknowledge(event);
-                        break;
-                    case DELAY:
-                        break;
-                    default:
-                        SKIP_TOUCH
-                        SKIP_SCROLL
-                        set(CLOCK, TURN_SKIP);
-                        break;
+                case INIT:
+                    clock.show(REPLACE);
+                    if (!timer.active())
+                        timer.start(true);
+                    timer.progress();
+                    acknowledge(event);
+                    wait(800);
+                    break;
+                case TIME:
+                    clock.update();
+                    timer.progress();
+                    break;
+                case TAP:
+                case SWIPE_UP:
+                case SWIPE_DOWN:
+                    clock.hideAlarms();
+                    timer.hide();
+                    set(TIMER);
+                    break;
+                case PRESS:
+                    timer.disable();
+                    back();
+                    break;
+                case ALARM:
+                case ELAPSED:
+                    set(CHIME);
+                    acknowledge(event);
+                    break;
+                case DELAY:
+                    break;
+                default:
+                    SKIP_TOUCH
+                    SKIP_SCROLL
+                    set(CLOCK, TURN_SKIP);
+                    break;
                 }
                 break;
             case VOLUME:
@@ -342,26 +343,27 @@ public:
                 switch (event)
                 {
                 case INIT:
-                        volume.open();
-                        acknowledge(event);
-                        break;
+                    volume.open();
+                    acknowledge(event);
+                    break;
                 case TAP:
                 case DELAY:
+                    volume.commit();
                     pop();
                     break;
                 case SWIPE_UP:
                 case SCROLL_UP:
-                        volume.up();
-                        break;
+                    volume.up();
+                    break;
                 case SWIPE_DOWN:
                 case SCROLL_DOWN:
-                        volume.down();
-                        break;
+                    volume.down();
+                    break;
                 default:
-                        SKIP_TOUCH
-                        volume.smoothStop();
-                        set(CLOCK, TURN_SKIP);
-                        break;
+                    SKIP_TOUCH
+                    volume.smoothStop();
+                    set(CLOCK, TURN_SKIP);
+                    break;
                 }
                 break;
             }

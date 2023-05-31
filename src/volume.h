@@ -1,42 +1,43 @@
 #ifndef VOLUME_H
 #define VOLUME_H
 
+#include "output/display.h"
 #include "output/player.h"
+#include "data/storage.h"
 
 #define START_DELAY 2000
-#define STOP_DELAY 50
+#define STOP_DELAY 20
 
 class Volume
 {
 public:
     void open()
     {
+        starting = false;
         display.show(SPEAKER, current, false, FADE);
     }
 
     void update()
     {
-        if(!starting && !player.playing() && current != 10) {
-            current = 10;
-            updated = true;
-        }
-        if(updated)
+        if (updated)
         {
             player.setVolume(current);
             updated = false;
         }
-        if(starting && chrono.hasPassed(START_DELAY)) {
+        if (starting && chrono.hasPassed(START_DELAY))
+        {
             chrono.restart();
             player.setVolume(++current);
-            if (current >= 10)
+            if (current >= target)
             {
                 starting = false;
             }
         }
-        if(stopping && chrono.hasPassed(STOP_DELAY)) {
+        if (stopping && chrono.hasPassed(STOP_DELAY))
+        {
             chrono.restart();
             player.setVolume(--current);
-            if(current == 0)
+            if (current == 0)
             {
                 player.stop();
                 stopping = false;
@@ -46,14 +47,14 @@ public:
 
     void up()
     {
-        if(current < 20)
+        if (current < 20)
             display.show(SPEAKER, ++current, false, SLIDE_UP);
         updated = true;
     }
 
     void down()
     {
-        if(current > 1)
+        if (current > 1)
             display.show(SPEAKER, --current, false, SLIDE_DOWN);
         updated = true;
     }
@@ -64,9 +65,18 @@ public:
         starting = false;
     }
 
-    void smoothStart()
+    void start(Music music)
     {
+        this->music = music;
+        current = target = storage.read(VOLUME, music);
+        updated = true;
+    }
+
+    void smoothStart(Music music)
+    {
+        this->music = music;
         player.setVolume(0);
+        target = storage.read(VOLUME, music);
         current = 0;
         starting = true;
         stopping = false;
@@ -74,10 +84,14 @@ public:
 
     void commit()
     {
+        storage.write(VOLUME, music, current);
     }
+
 private:
     Chrono chrono;
-    int8_t current = 10;
+    int8_t current;
+    int8_t target;
+    Music music;
     boolean updated;
     bool stopping = false;
     bool starting = false;

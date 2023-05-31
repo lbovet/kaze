@@ -95,11 +95,9 @@ public:
         switch (alarm)
         {
         case 1:
-            Serial.println(rtc.alarmMode(URTCLIB_ALARM_1));
             return rtc.alarmMode(URTCLIB_ALARM_1) == URTCLIB_ALARM_TYPE_1_FIXED_HMS;
             break;
         case 2:
-            Serial.println(rtc.alarmMode(URTCLIB_ALARM_2));
             return rtc.alarmMode(URTCLIB_ALARM_2) == URTCLIB_ALARM_TYPE_2_FIXED_HM;
             break;
         default:

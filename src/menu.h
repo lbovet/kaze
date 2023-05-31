@@ -11,7 +11,6 @@
 class Menu
 {
 public:
-
     void open()
     {
         if (timer.active())
@@ -23,7 +22,7 @@ public:
         else
         {
             symbol = BELL;
-            if(clock.alarms() & 1)
+            if (clock.alarms() & 1)
                 alarm = 1;
             else
                 alarm = 2;
@@ -119,8 +118,23 @@ public:
         case HOURGLASS:
             return timer;
         default:
-            volume.smoothStart();
-            player.play();
+            Music music;
+            switch (symbol)
+            {
+            case MOON:
+                music = SLEEP;
+                break;
+            case MEDITATION:
+                music = MASSAGE;
+                break;
+            case HEART:
+                music = LOVE;
+                break;
+            default:
+                return back;
+            }
+            volume.start(music);
+            player.play(music);
             return back;
         }
     }

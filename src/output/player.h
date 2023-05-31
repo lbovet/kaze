@@ -11,11 +11,12 @@
 #define CARDCS 4        // Card chip select pin
 #define DREQ 3          // VS1053 Data request, ideally an Interrupt pin
 
-enum Section
+enum Music
 {
     SLEEP,
-    CHILL,
-    LOVE
+    MASSAGE,
+    LOVE,
+    CHIME
 };
 
 class Player
@@ -39,8 +40,12 @@ public:
             Serial.println(F("DREQ pin is not an interrupt pin"));
     }
 
-    void play(Section section = SLEEP, int8_t track = -1)
+    void play(Music section = SLEEP, int8_t track = -1)
     {
+        if (playing())
+        {
+            stop();
+        }
         // Start playing a file, then we can do stuff while waiting for it to finish
         if (!musicPlayer.startPlayingFile("/track002.mp3"))
             Serial.println(F("Could not open file track001.mp3"));
