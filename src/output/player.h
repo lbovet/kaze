@@ -17,6 +17,25 @@
 #define MAX_TRACK_COUNT 16
 #define DATA_SIZE MAX_TRACK_COUNT + 2
 
+const char SLEEP_STRING[] PROGMEM = "SLEEP";
+const char MASSAGE_STRING[] PROGMEM = "MASSAGE";
+const char LOVE_STRING[] PROGMEM = "LOVE";
+const char ALARM_STRING[] PROGMEM = "ALARM";
+const char SIGNAL_STRING[] PROGMEM = "/sound/signal.mid";
+const char BLUP_STRING[] PROGMEM = "/sound/blup.mid";
+
+const char *const STRINGS[] PROGMEM = {
+    SLEEP_STRING,
+    MASSAGE_STRING,
+    LOVE_STRING,
+    ALARM_STRING,
+    SIGNAL_STRING,
+    BLUP_STRING
+};
+
+#define SIGNAL_OFFSET 4
+#define BLUP_OFFSET 5
+
 class Player
 {
 public:
@@ -89,19 +108,24 @@ public:
 
     void signal()
     {
+        char path[22];
+        strcpy_P(path, (char *)pgm_read_word(&(STRINGS[SIGNAL_OFFSET])));
         musicPlayer.setVolume(5, 5);
-        playFile("/sound/signal.mid");
+        playFile(path);
     }
 
     void blup()
     {
+        char path[22];
+        strcpy_P(path, (char *)pgm_read_word(&(STRINGS[BLUP_OFFSET])));
         musicPlayer.setVolume(0, 0);
-        playFile("/sound/blup.mid");
+        playFile(path);
     }
 
     void fallBackAlarm()
     {
-        if(failing) {
+        if (failing)
+        {
             musicPlayer.sineTest(0x44, 500);
         }
     }
@@ -109,23 +133,8 @@ public:
 private:
     int readNextFilename(Music music, char *path)
     {
-        char *dirName;
-        switch (music)
-        {
-        case (ALARM):
-            dirName = "ALARM";
-            break;
-        case (SLEEP):
-            dirName = "SLEEP";
-            break;
-        case (MASSAGE):
-            dirName = "MASSAGE";
-            break;
-        case (LOVE):
-        default:
-            dirName = "LOVE";
-            break;
-        }
+        char dirName[9];
+        strcpy_P(dirName, (char *)pgm_read_word(&(STRINGS[music])));
         File dir = SD.open(dirName);
         if (!dir)
         {
@@ -207,7 +216,7 @@ private:
     Adafruit_VS1053_FilePlayer musicPlayer =
         Adafruit_VS1053_FilePlayer(SHIELD_RESET, SHIELD_CS, SHIELD_DCS, DREQ, CARDCS);
     byte sequenceData[DATA_SIZE];
-    boolean failing =false;
+    boolean failing = false;
     boolean beep = false;
 };
 
