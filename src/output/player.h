@@ -42,7 +42,7 @@ public:
         if (!musicPlayer.useInterrupt(VS1053_FILEPLAYER_PIN_INT))
             Serial.println(F("E DREQ"));
 
-        play(SLEEP);
+        blup();
     }
 
     void play(Music music)
@@ -52,10 +52,11 @@ public:
             stop();
         }
 
-        char path[21];
+        char path[22];
         if (!readNextFilename(music, path))
         {
             Serial.println(F("E Next"));
+            failing = true;
             return;
         }
 
@@ -64,7 +65,9 @@ public:
         if (!musicPlayer.startPlayingFile(path))
         {
             Serial.println(F("E Play"));
+            failing = true;
         }
+        failing = false;
     }
 
     void setVolume(uint8_t volume)
@@ -87,13 +90,20 @@ public:
     void signal()
     {
         musicPlayer.setVolume(5, 5);
-        playFile("sound/signal.mid");
+        playFile("/sound/signal.mid");
     }
 
     void blup()
     {
         musicPlayer.setVolume(0, 0);
-        playFile("sound/blup.mid");
+        playFile("/sound/blup.mid");
+    }
+
+    void fallBackAlarm()
+    {
+        if(failing) {
+            musicPlayer.sineTest(0x44, 500);
+        }
     }
 
 private:
@@ -127,7 +137,8 @@ private:
         uint8_t next = randomizer.next(sequenceData, countFiles(dir));
         storage.write(TRACK, music * DATA_SIZE, sequenceData, DATA_SIZE);
 
-        strcpy(path, dirName);
+        strcpy(path, "/");
+        strcat(path, dirName);
         strcat(path, "/");
         dir.rewindDirectory();
         appendFileName(dir, next, path);
@@ -196,6 +207,8 @@ private:
     Adafruit_VS1053_FilePlayer musicPlayer =
         Adafruit_VS1053_FilePlayer(SHIELD_RESET, SHIELD_CS, SHIELD_DCS, DREQ, CARDCS);
     byte sequenceData[DATA_SIZE];
+    boolean failing =false;
+    boolean beep = false;
 };
 
 Player player;

@@ -265,6 +265,7 @@ public:
                     break;
                 case TIME:
                     clock.update();
+                    player.fallBackAlarm();
                     break;
                 case TAP:
                     volume.smoothStop();
