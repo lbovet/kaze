@@ -22,7 +22,7 @@ public:
     {
         if (!cap.begin(0x5B, &Wire, 2))
         {
-            Serial.println("MPR121 not found, check wiring?");
+            Serial.println("E MPR121");
         }
         cap.setThresholds(0x10, 0x10);
     }

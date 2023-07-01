@@ -8,7 +8,8 @@
 enum Area
 {
     TIMER = 0,
-    VOLUME = 32
+    VOLUME = 32,
+    TRACK = 64
 };
 
 class Storage
@@ -27,6 +28,16 @@ public:
     byte read(Area area, unsigned int address)
     {
         return eeprom.eeprom_read(area + address);
+    }
+
+    void write(Area area, unsigned int address, byte* data, unsigned int size)
+    {
+        eeprom.eeprom_write(area + address, data, size);
+    }
+
+    void read(Area area, unsigned int address, byte *data, unsigned int size)
+    {
+        eeprom.eeprom_read(area + address, data, size);
     }
 
 private:

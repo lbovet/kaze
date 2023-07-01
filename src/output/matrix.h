@@ -4,8 +4,6 @@
 #include <Wire.h>
 #include <Adafruit_I2CDevice.h>
 
-#define SWAP(a, b) (a ^= b, b = a ^ b, a ^= b)
-
 #define HT16K33_BLINK_CMD 0x80       ///< I2C register for BLINK setting
 #define HT16K33_BLINK_DISPLAYON 0x01 ///< I2C value for steady on
 #define HT16K33_BLINK_OFF 0          ///< I2C value for steady off

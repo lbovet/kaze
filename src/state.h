@@ -108,6 +108,7 @@ public:
                 case TURN_DOWN:
                     clock.turn(BOTTOM);
                     timer.disable();
+                    player.signal();
                     wait(2000);
                     acknowledge(event);
                     break;
@@ -257,11 +258,8 @@ public:
                 case INIT:
                     clock.show();
                     timer.disable();
-                    if (!player.playing())
-                    {
-                        volume.smoothStart(Player::ALARM);
-                        player.play(Player::ALARM);
-                    }
+                    volume.smoothStart(Player::ALARM);
+                    player.play(Player::ALARM);
                     acknowledge(event);
                     timeout(10 * 60 * 1000L);
                     break;
@@ -324,6 +322,7 @@ public:
                     set(TIMER);
                     break;
                 case PRESS:
+                    player.signal();
                     timer.disable();
                     back();
                     break;
