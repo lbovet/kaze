@@ -7,6 +7,7 @@
 #include "input/touch.h"
 #include "input/event.h"
 #include "input/orientation.h"
+#include "input/light.h"
 #include "clock.h"
 #include "timer.h"
 #include "state.h"
@@ -54,6 +55,7 @@ void loop()
     {
       bus.post(ELAPSED);
     }
+    display.setBrightness(lightSensor.value());
   }
 
   stateMachine.update();
