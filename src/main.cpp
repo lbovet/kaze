@@ -14,7 +14,7 @@
 #include "menu.h"
 #include "volume.h"
 
-Chrono longDelay, shortDelay;
+Chrono longDelay, shortDelay, touchDelay;
 
 void setup()
 {
@@ -30,10 +30,15 @@ void setup()
 
 void loop()
 {
+  if (touchDelay.hasPassed(70))
+  {
+    bus.post(touch.update());
+    touchDelay.restart();
+  }
+
   if (shortDelay.hasPassed(100))
   {
     shortDelay.restart();
-    bus.post(touch.update());
     if (orientation.update())
     {
       bus.post(orientation.current() == BOTTOM ? TURN_DOWN : TURN_UP);
@@ -56,6 +61,7 @@ void loop()
       bus.post(ELAPSED);
     }
     display.setBrightness(lightSensor.value());
+    player.update();
   }
 
   stateMachine.update();

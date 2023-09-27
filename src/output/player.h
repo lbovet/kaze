@@ -64,12 +64,20 @@ public:
         blup();
     }
 
-    void play(Music music)
+    void play(Music music, long minutesToPlay = 180)
     {
+        if (minutesToPlay > 0)
+        {
+            chrono.restart();
+            timeToPlay = minutesToPlay * 60 * 1000;
+        }
+
         if (playing())
         {
             stop();
         }
+
+        currentMusic = music;
 
         char path[22];
         if (!readNextFilename(music, path))
@@ -89,6 +97,20 @@ public:
         failing = false;
     }
 
+    void update() {
+        if(timeToPlay > 0) {
+            if(playing()) {
+                if(chrono.elapsed() > timeToPlay) {
+                    timeToPlay = 0;
+                }
+            } else {
+                if(chrono.elapsed() < timeToPlay) {
+                    play(currentMusic, 0);
+                }
+            }
+        }
+    }
+
     void setVolume(uint8_t volume)
     {
         uint8_t value = 0x60 - (volume * 0x60 / 20);
@@ -97,6 +119,7 @@ public:
 
     void stop()
     {
+        timeToPlay = 0;
         musicPlayer.stopPlaying();
         delay(50);
     }
@@ -218,6 +241,9 @@ private:
     byte sequenceData[DATA_SIZE];
     boolean failing = false;
     boolean beep = false;
+    Chrono chrono;
+    Music currentMusic;
+    unsigned long timeToPlay = 0;
 };
 
 Player player;

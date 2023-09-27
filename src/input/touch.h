@@ -8,10 +8,10 @@
 #include "event.h"
 
 #define PRESS_DELAY 800
-#define TAP_DELAY 50
+#define TAP_DELAY 40
 #define BOUNCE_DELAY 600
 #define QUIET_DELAY 300
-#define SCROLL_DELAY 200
+#define SCROLL_DELAY 300
 
 #define sgn(x) (((x) < 0) ? -1 : ((x) > 0))
 
@@ -22,9 +22,9 @@ public:
     {
         if (!cap.begin(0x5B, &Wire, 2))
         {
-            Serial.println("E MPR121");
+            Serial.println(F("E MPR121"));
         }
-        cap.setThresholds(0x10, 0x10);
+        cap.setThresholds(0x10, 0x08);
     }
 
     Event update()
