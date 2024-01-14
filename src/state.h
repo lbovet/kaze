@@ -108,12 +108,12 @@ public:
                 case TURN_DOWN:
                     clock.turn(BOTTOM);
                     timer.disable();
-                    player.signal();
                     wait(2000);
                     acknowledge(event);
                     break;
                 case TURN_UP:
                     clock.turn(TOP);
+                    player.signal();
                     wait(2000);
                     acknowledge(event);
                     break;
@@ -267,6 +267,7 @@ public:
                     clock.update();
                     player.fallBackAlarm();
                     break;
+                case PRESS:
                 case TAP:
                     volume.smoothStop();
                     if (clock.alarmTriggered())

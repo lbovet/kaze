@@ -24,6 +24,11 @@ const char ALARM_STRING[] PROGMEM = "ALARM";
 const char SIGNAL_STRING[] PROGMEM = "/sound/signal.mid";
 const char BLUP_STRING[] PROGMEM = "/sound/blup.mid";
 
+// Playing time (minutes)
+#define SHORT 10
+#define MEDIUM 60
+#define LONG 15*60
+
 const char *const STRINGS[] PROGMEM = {
     SLEEP_STRING,
     MASSAGE_STRING,
@@ -64,8 +69,22 @@ public:
         blup();
     }
 
-    void play(Music music, long minutesToPlay = 180)
+    void play(Music music, long minutesToPlay = 0)
     {
+        if(minutesToPlay == 0) {
+            switch(music) {
+                case ALARM:
+                    minutesToPlay = SHORT;
+                    break;
+                case SLEEP:
+                    minutesToPlay = MEDIUM;
+                    break;
+                case LOVE:
+                case MASSAGE:
+                    minutesToPlay = LONG;
+                    break;
+            }
+        }
         if (minutesToPlay > 0)
         {
             chrono.restart();
@@ -105,7 +124,7 @@ public:
                 }
             } else {
                 if(chrono.elapsed() < timeToPlay) {
-                    play(currentMusic, 0);
+                    play(currentMusic, -1);
                 }
             }
         }
