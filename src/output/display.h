@@ -382,8 +382,8 @@ private:
     uint8_t interval;
     uint16_t bar = 0;
     byte blinkingBits = 0;
-    Matrix matrix1 = Matrix(0x70);
-    Matrix matrix2 = Matrix(0x71);
+    Matrix matrix1 = Matrix(0x71);
+    Matrix matrix2 = Matrix(0x70);
 };
 
 Display display;

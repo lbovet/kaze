@@ -24,7 +24,7 @@ public:
         {
             Serial.println(F("E MPR121"));
         }
-        cap.setThresholds(0x10, 0x08);
+        cap.setThresholds(7, 4);
     }
 
     Event update()
